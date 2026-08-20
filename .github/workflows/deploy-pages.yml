@@ -27,6 +27,8 @@ jobs:
         env:
           VITE_STRIPE_PUBLISHABLE_KEY: ${{ vars.STRIPE_PUBLISHABLE_KEY }}
           VITE_STRIPE_BUY_BUTTON_ID: ${{ vars.STRIPE_BUY_BUTTON_ID }}
+          VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
       - run: cp dist/index.html dist/404.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

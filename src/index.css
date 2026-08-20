@@ -623,6 +623,10 @@ a {
   color: var(--text);
 }
 
+.settings-row--danger {
+  color: var(--danger);
+}
+
 .toggle {
   width: 46px;
   height: 26px;

@@ -53,6 +53,8 @@ export function useTasks() {
 
   const clearDraft = useCallback(() => setDraftTask(null), [])
 
+  const clearAllTasks = useCallback(() => setTasks([]), [])
+
   return {
     tasks,
     addTask,
@@ -62,5 +64,6 @@ export function useTasks() {
     draftTask,
     setDraftTask,
     clearDraft,
+    clearAllTasks,
   }
 }

@@ -18,17 +18,18 @@ export default function Home() {
     .sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'))
 
   const remaining = isPremium ? Infinity : remainingFreeTasks(tasks)
+  const outOfCredits = remaining <= 0
 
   const handleMicTap = () => {
-    if (isPremium) {
-      navigate('/record')
-    } else {
+    if (outOfCredits) {
       navigate('/upgrade')
+      return
     }
+    navigate('/record')
   }
 
   const handleManualAdd = () => {
-    if (remaining <= 0) {
+    if (outOfCredits) {
       navigate('/upgrade')
       return
     }
@@ -53,7 +54,7 @@ export default function Home() {
             type="button"
             className="icon-button icon-button--accent"
             onClick={handleMicTap}
-            aria-label={isPremium ? 'Record a task with your voice' : 'Voice tasks are a Premium feature'}
+            aria-label="Record a task with your voice"
           >
             <MicIcon />
           </button>
@@ -76,7 +77,7 @@ export default function Home() {
             <div className="empty-state">
               <p>No tasks for today yet.</p>
               <p className="empty-state__hint">
-                {isPremium ? 'Tap the mic to add one with your voice.' : 'Tap + to add one.'}
+                {outOfCredits ? 'Upgrade for more.' : 'Tap the mic or + to add one.'}
               </p>
             </div>
           ) : (

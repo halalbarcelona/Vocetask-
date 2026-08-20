@@ -4,14 +4,16 @@ import { useTasksContext } from '../hooks/TasksContext'
 import { usePremiumContext } from '../hooks/PremiumContext'
 import { BackIcon, MicIcon } from '../components/icons'
 import { parseVoiceCommand } from '../utils/voiceParser'
+import { remainingFreeTasks } from '../utils/plan'
 
 const SpeechRecognitionAPI =
   typeof window !== 'undefined' ? window.SpeechRecognition || window.webkitSpeechRecognition : undefined
 
 export default function Record() {
   const navigate = useNavigate()
-  const { setDraftTask } = useTasksContext()
+  const { tasks, setDraftTask } = useTasksContext()
   const { isPremium } = usePremiumContext()
+  const outOfCredits = !isPremium && remainingFreeTasks(tasks) <= 0
 
   const [transcript, setTranscript] = useState('')
   const [isListening, setIsListening] = useState(false)
@@ -20,8 +22,8 @@ export default function Record() {
   const supportsSpeech = Boolean(SpeechRecognitionAPI)
 
   useEffect(() => {
-    if (!isPremium) navigate('/upgrade', { replace: true })
-  }, [isPremium, navigate])
+    if (outOfCredits) navigate('/upgrade', { replace: true })
+  }, [outOfCredits, navigate])
 
   useEffect(() => {
     if (!supportsSpeech) return undefined
@@ -76,7 +78,7 @@ export default function Record() {
     navigate('/confirm')
   }
 
-  if (!isPremium) return null
+  if (outOfCredits) return null
 
   return (
     <div className="screen screen--record">

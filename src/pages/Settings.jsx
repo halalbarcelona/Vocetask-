@@ -3,12 +3,16 @@ import { useNavigate } from 'react-router-dom'
 import BottomTabBar from '../components/BottomTabBar'
 import { ChevronIcon } from '../components/icons'
 import { usePremiumContext } from '../hooks/PremiumContext'
+import { useAccountContext } from '../hooks/AccountContext'
 
 export default function Settings() {
   const navigate = useNavigate()
   const { isPremium } = usePremiumContext()
+  const { account } = useAccountContext()
   const [pushNotifications, setPushNotifications] = useState(true)
   const [calendarSync, setCalendarSync] = useState(false)
+
+  const initial = account?.name?.trim()?.[0]?.toUpperCase() || '?'
 
   return (
     <div className="screen">
@@ -18,10 +22,10 @@ export default function Settings() {
 
       <main className="screen__content">
         <div className="card profile-card">
-          <div className="profile-card__avatar">A</div>
+          <div className="profile-card__avatar">{initial}</div>
           <div>
-            <p className="profile-card__name">Aura User</p>
-            <p className="profile-card__email">you@example.com</p>
+            <p className="profile-card__name">{account?.name || 'Aura User'}</p>
+            <p className="profile-card__email">{account?.email || ''}</p>
           </div>
         </div>
 
@@ -29,7 +33,7 @@ export default function Settings() {
           <div>
             <p className="upgrade-banner__title">{isPremium ? 'You’re on Premium' : 'You’re on Free'}</p>
             <p className="upgrade-banner__subtitle">
-              {isPremium ? 'Unlimited tasks and voice entry are unlocked' : 'Upgrade for unlimited voice tasks'}
+              {isPremium ? 'Unlimited tasks, voice or manual' : 'Upgrade for unlimited tasks'}
             </p>
           </div>
           {!isPremium && (
@@ -56,11 +60,11 @@ export default function Settings() {
         <section className="settings-group">
           <h2 className="section-title">General</h2>
           <div className="card">
-            <button type="button" className="settings-row settings-row--link">
+            <button type="button" className="settings-row settings-row--link" onClick={() => navigate('/account')}>
               <span>Account Settings</span>
               <ChevronIcon />
             </button>
-            <button type="button" className="settings-row settings-row--link">
+            <button type="button" className="settings-row settings-row--link" onClick={() => navigate('/privacy')}>
               <span>Privacy Policy</span>
               <ChevronIcon />
             </button>

@@ -7,8 +7,7 @@ const STRIPE_BUY_BUTTON_ID = import.meta.env.VITE_STRIPE_BUY_BUTTON_ID
 const STRIPE_CONFIGURED = Boolean(STRIPE_PUBLISHABLE_KEY && STRIPE_BUY_BUTTON_ID)
 
 const FEATURES = [
-  { label: 'Tasks', free: '3 a day', premium: 'Unlimited' },
-  { label: 'Voice entry', free: '—', premium: 'Included' },
+  { label: 'Tasks (voice + manual)', free: '3 a day', premium: 'Unlimited' },
   { label: 'Support', free: '—', premium: 'Priority' },
 ]
 
@@ -56,9 +55,9 @@ export default function Upgrade() {
           <div className="paywall-hero__icon">
             <MicIcon width={28} height={28} />
           </div>
-          <h2 className="paywall-hero__title">Unlock voice tasks</h2>
+          <h2 className="paywall-hero__title">You’ve used today’s free tasks</h2>
           <p className="paywall-hero__subtitle">
-            Speaking your tasks is a Premium feature. Upgrade for unlimited tasks and voice entry.
+            Free plans get 3 tasks a day, by voice or by hand. Upgrade for unlimited tasks, any time.
           </p>
         </div>
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTasksContext } from '../hooks/TasksContext'
+import { usePremiumContext } from '../hooks/PremiumContext'
 import { BackIcon, MicIcon } from '../components/icons'
 import { parseVoiceCommand } from '../utils/voiceParser'
 
@@ -10,12 +11,17 @@ const SpeechRecognitionAPI =
 export default function Record() {
   const navigate = useNavigate()
   const { setDraftTask } = useTasksContext()
+  const { isPremium } = usePremiumContext()
 
   const [transcript, setTranscript] = useState('')
   const [isListening, setIsListening] = useState(false)
   const recognitionRef = useRef(null)
 
   const supportsSpeech = Boolean(SpeechRecognitionAPI)
+
+  useEffect(() => {
+    if (!isPremium) navigate('/upgrade', { replace: true })
+  }, [isPremium, navigate])
 
   useEffect(() => {
     if (!supportsSpeech) return undefined
@@ -66,9 +72,11 @@ export default function Record() {
   const handleDone = () => {
     recognitionRef.current?.stop()
     const draft = parseVoiceCommand(transcript)
-    setDraftTask(draft)
+    setDraftTask({ ...draft, source: 'voice' })
     navigate('/confirm')
   }
+
+  if (!isPremium) return null
 
   return (
     <div className="screen screen--record">

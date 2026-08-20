@@ -1,8 +1,12 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import BottomTabBar from '../components/BottomTabBar'
 import { ChevronIcon } from '../components/icons'
+import { usePremiumContext } from '../hooks/PremiumContext'
 
 export default function Settings() {
+  const navigate = useNavigate()
+  const { isPremium } = usePremiumContext()
   const [pushNotifications, setPushNotifications] = useState(true)
   const [calendarSync, setCalendarSync] = useState(false)
 
@@ -21,14 +25,18 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className="upgrade-banner">
+        <div className={`upgrade-banner${isPremium ? ' upgrade-banner--premium' : ''}`}>
           <div>
-            <p className="upgrade-banner__title">You’re on Free</p>
-            <p className="upgrade-banner__subtitle">Upgrade for unlimited voice tasks</p>
+            <p className="upgrade-banner__title">{isPremium ? 'You’re on Premium' : 'You’re on Free'}</p>
+            <p className="upgrade-banner__subtitle">
+              {isPremium ? 'Unlimited tasks and voice entry are unlocked' : 'Upgrade for unlimited voice tasks'}
+            </p>
           </div>
-          <button type="button" className="button button--light">
-            Upgrade
-          </button>
+          {!isPremium && (
+            <button type="button" className="button button--light" onClick={() => navigate('/upgrade')}>
+              Upgrade
+            </button>
+          )}
         </div>
 
         <section className="settings-group">

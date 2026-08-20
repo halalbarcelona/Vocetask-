@@ -1,14 +1,17 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTasksContext } from '../hooks/TasksContext'
+import { usePremiumContext } from '../hooks/PremiumContext'
 import CategoryChip from '../components/CategoryChip'
 import { BackIcon } from '../components/icons'
+import { remainingFreeTasks } from '../utils/plan'
 
 const CATEGORIES = ['Personal', 'Work']
 
 export default function Confirm() {
   const navigate = useNavigate()
-  const { draftTask, setDraftTask, addTask, clearDraft } = useTasksContext()
+  const { tasks, draftTask, setDraftTask, addTask, clearDraft } = useTasksContext()
+  const { isPremium } = usePremiumContext()
 
   useEffect(() => {
     if (!draftTask) navigate('/', { replace: true })
@@ -16,9 +19,16 @@ export default function Confirm() {
 
   if (!draftTask) return null
 
+  const remaining = isPremium ? Infinity : remainingFreeTasks(tasks)
+  const limitReached = remaining <= 0
+
   const updateDraft = (updates) => setDraftTask({ ...draftTask, ...updates })
 
   const handleSave = () => {
+    if (limitReached) {
+      navigate('/upgrade')
+      return
+    }
     addTask(draftTask)
     clearDraft()
     navigate('/')
@@ -28,6 +38,11 @@ export default function Confirm() {
     clearDraft()
     navigate('/')
   }
+
+  const hint =
+    draftTask.source === 'voice'
+      ? 'Check the details — we parsed your voice command. Tap any field to edit.'
+      : 'Fill in the details for your task.'
 
   return (
     <div className="screen">
@@ -40,9 +55,15 @@ export default function Confirm() {
       </header>
 
       <main className="screen__content">
-        <p className="confirm-hint">
-          Check the details — we parsed your voice command. Tap any field to edit.
-        </p>
+        <p className="confirm-hint">{hint}</p>
+
+        {!isPremium && (
+          <p className={`plan-hint${limitReached ? ' plan-hint--warning' : ''}`}>
+            {limitReached
+              ? "You've used today's free tasks — upgrade for unlimited."
+              : `${remaining} free task${remaining === 1 ? '' : 's'} left today`}
+          </p>
+        )}
 
         <div className="card confirm-card">
           <label className="field">
@@ -95,7 +116,7 @@ export default function Confirm() {
 
         <div className="confirm-actions">
           <button type="button" className="button button--primary button--wide" onClick={handleSave}>
-            Save Task
+            {limitReached ? 'Upgrade to Save' : 'Save Task'}
           </button>
           <button type="button" className="button button--ghost button--wide" onClick={handleDiscard}>
             Discard

@@ -33,6 +33,7 @@ export function useTasks() {
       time: task.time ?? '',
       category: task.category ?? 'Personal',
       done: false,
+      createdAt: new Date().toISOString(),
     }
     setTasks((prev) => [...prev, newTask])
     return newTask

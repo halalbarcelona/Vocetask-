@@ -6,7 +6,6 @@ import { useCategoriesContext } from '../hooks/CategoriesContext'
 import { useTemplates } from '../hooks/useTemplates'
 import CategoryChip from '../components/CategoryChip'
 import { BackIcon, LockIcon, PlusIcon, TrashIcon } from '../components/icons'
-import { remainingFreeTasks } from '../utils/plan'
 
 const RECURRENCE_OPTIONS = [
   { value: 'none', label: 'One-time' },
@@ -76,10 +75,7 @@ export default function Confirm() {
   if (!draftTask) return null
 
   // An existing task being edited carries its id; a brand-new draft doesn't.
-  // Edits never consume a daily credit — only creating a task does.
   const isEditing = Boolean(draftTask.id)
-  const remaining = isPremium || isEditing ? Infinity : remainingFreeTasks(tasks)
-  const limitReached = remaining <= 0
   const subtasks = draftTask.subtasks ?? []
   const recurrenceDays = draftTask.recurrenceDays ?? []
 
@@ -145,10 +141,6 @@ export default function Confirm() {
   }
 
   const handleSave = () => {
-    if (limitReached) {
-      navigate('/upgrade')
-      return
-    }
     if (isEditing) {
       const { id, source, ...updates } = draftTask
       updateTask(id, updates)
@@ -184,14 +176,6 @@ export default function Confirm() {
 
       <main className="screen__content">
         <p className="confirm-hint">{hint}</p>
-
-        {!isPremium && !isEditing && (
-          <p className={`plan-hint${limitReached ? ' plan-hint--warning' : ''}`}>
-            {limitReached
-              ? "You've used today's free tasks — upgrade for unlimited."
-              : `${remaining} free task${remaining === 1 ? '' : 's'} left today`}
-          </p>
-        )}
 
         <div className="card confirm-card">
           <label className="field">
@@ -368,7 +352,7 @@ export default function Confirm() {
 
         <div className="confirm-actions">
           <button type="button" className="button button--primary button--wide" onClick={handleSave}>
-            {limitReached ? 'Upgrade to Save' : isEditing ? 'Save Changes' : 'Save Task'}
+            {isEditing ? 'Save Changes' : 'Save Task'}
           </button>
           <button type="button" className="button button--ghost button--wide" onClick={handleSaveTemplate}>
             {templateSaved ? 'Saved as Template ✓' : 'Save as Template'}

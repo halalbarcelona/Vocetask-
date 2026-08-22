@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { beginTrialIfUnstarted } from './usePremium'
 
 const STORAGE_KEY = 'aura-account'
 
@@ -24,6 +25,9 @@ export function useAccount() {
 
   const createAccount = useCallback(({ name, email }) => {
     setAccount({ name: name.trim(), email: email.trim() })
+    // New users get their 7 days of Premium from here. Idempotent, so
+    // logging out and back in never hands out a second trial.
+    beginTrialIfUnstarted()
   }, [])
 
   const updateAccount = useCallback((updates) => {

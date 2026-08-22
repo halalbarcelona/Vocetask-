@@ -2,14 +2,16 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BackIcon, CheckIcon, LockIcon, MicIcon } from '../components/icons'
 import { useAccountContext } from '../hooks/AccountContext'
-import { FREE_DAILY_TASK_LIMIT } from '../utils/plan'
+import { usePremiumContext } from '../hooks/PremiumContext'
+import { useTasksContext } from '../hooks/TasksContext'
+import { pickUpsellReason } from '../utils/upsell'
 
 const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
 const STRIPE_BUY_BUTTON_ID = import.meta.env.VITE_STRIPE_BUY_BUTTON_ID
 const STRIPE_CONFIGURED = Boolean(STRIPE_PUBLISHABLE_KEY && STRIPE_BUY_BUTTON_ID)
 
 const FEATURES = [
-  { label: 'Tasks (voice + manual)', free: `${FREE_DAILY_TASK_LIMIT} a day`, premium: 'Unlimited' },
+  { label: 'Tasks (voice + manual)', free: 'Unlimited', premium: 'Unlimited' },
   { label: 'Recurring tasks', free: '—', premium: 'Daily / Weekly / Monthly / Custom' },
   { label: 'Subtasks / checklists', free: '—', premium: 'Included' },
   { label: 'Voice actions (done, delete, reschedule)', free: '—', premium: 'Included' },
@@ -57,6 +59,9 @@ export default function Upgrade() {
   const navigate = useNavigate()
   const stripeReady = useStripeBuyButtonScript()
   const { account } = useAccountContext()
+  const { tasks } = useTasksContext()
+  const { trialActive, trialDaysLeft } = usePremiumContext()
+  const reason = pickUpsellReason(tasks)
 
   return (
     <div className="screen">
@@ -73,13 +78,26 @@ export default function Upgrade() {
           <div className="paywall-hero__icon">
             <MicIcon width={28} height={28} />
           </div>
-          <h2 className="paywall-hero__title">Unlock everything, once</h2>
+          <h2 className="paywall-hero__title">
+            {trialActive ? `Keep Premium after day ${7 - trialDaysLeft + 1}` : 'Unlock everything, once'}
+          </h2>
           <p className="paywall-hero__subtitle">
-            Free gives you {FREE_DAILY_TASK_LIMIT} tasks a day, by voice or by hand. Premium unlocks every
-            feature below — recurring tasks, subtasks, priorities, templates, reports and more.
+            Tasks are always unlimited and free. Premium adds the depth — recurring tasks, subtasks,
+            priorities, templates, reports and more.
           </p>
           <p className="paywall-hero__badge">One-time payment · Yours forever · No subscription</p>
         </div>
+
+        <div className="card upsell-card">
+          <p className="upsell-card__feature">
+            <CheckIcon /> {reason.feature}
+          </p>
+          <p className="upsell-card__message">{reason.message}</p>
+        </div>
+
+        <p className="price-anchor">
+          Other to-do apps charge <strong>every year, forever</strong>. Aura Premium is one payment.
+        </p>
 
         <div className="card plan-table">
           <div className="plan-table__row plan-table__row--header">

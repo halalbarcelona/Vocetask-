@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import { useTasksContext } from '../hooks/TasksContext'
 import { useTemplates } from '../hooks/useTemplates'
+import { usePremiumContext } from '../hooks/PremiumContext'
+import LockedOverlay from '../components/LockedOverlay'
 import { BackIcon, TrashIcon } from '../components/icons'
 import { todayISO } from '../utils/dateUtils'
 
@@ -8,6 +10,7 @@ export default function Templates() {
   const navigate = useNavigate()
   const { addTask } = useTasksContext()
   const { templates, removeTemplate } = useTemplates()
+  const { isPremium } = usePremiumContext()
 
   const handleUse = (template) => {
     addTask({ ...template, date: todayISO() })
@@ -28,6 +31,12 @@ export default function Templates() {
         <p className="confirm-hint">
           Save any task as a template from the Confirm screen, then reuse it here with one tap.
         </p>
+
+        <LockedOverlay
+          locked={!isPremium}
+          title={templates.length > 0 ? `You saved ${templates.length} template${templates.length === 1 ? '' : 's'}` : 'Templates are Premium'}
+          subtitle="Unlock Premium to reuse them with one tap."
+        >
 
         {templates.length === 0 ? (
           <div className="empty-state">
@@ -65,6 +74,7 @@ export default function Templates() {
             ))}
           </div>
         )}
+        </LockedOverlay>
       </main>
     </div>
   )

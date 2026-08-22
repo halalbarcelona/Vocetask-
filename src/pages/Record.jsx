@@ -5,7 +5,6 @@ import { usePremiumContext } from '../hooks/PremiumContext'
 import { BackIcon, MicIcon } from '../components/icons'
 import { parseVoiceCommand } from '../utils/voiceParser'
 import { findBestMatchingTask, parseVoiceAction } from '../utils/voiceAction'
-import { remainingFreeTasks } from '../utils/plan'
 import { tomorrowISO, todayISO } from '../utils/dateUtils'
 
 const SpeechRecognitionAPI =
@@ -15,7 +14,6 @@ export default function Record() {
   const navigate = useNavigate()
   const { tasks, setDraftTask, toggleDone, removeTask, updateTask } = useTasksContext()
   const { isPremium } = usePremiumContext()
-  const outOfCredits = !isPremium && remainingFreeTasks(tasks) <= 0
 
   const location = useLocation()
   // Tapping an example on Home's empty state lands here with the phrase
@@ -25,10 +23,6 @@ export default function Record() {
   const recognitionRef = useRef(null)
 
   const supportsSpeech = Boolean(SpeechRecognitionAPI)
-
-  useEffect(() => {
-    if (outOfCredits) navigate('/upgrade', { replace: true })
-  }, [outOfCredits, navigate])
 
   useEffect(() => {
     if (!supportsSpeech) return undefined
@@ -102,8 +96,6 @@ export default function Record() {
     setDraftTask({ ...draft, source: 'voice' })
     navigate('/confirm')
   }
-
-  if (outOfCredits) return null
 
   return (
     <div className="screen screen--record">

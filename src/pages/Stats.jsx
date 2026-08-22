@@ -1,11 +1,14 @@
 import { useNavigate } from 'react-router-dom'
 import { useTasksContext } from '../hooks/TasksContext'
+import { usePremiumContext } from '../hooks/PremiumContext'
+import LockedOverlay from '../components/LockedOverlay'
 import { BackIcon } from '../components/icons'
 import { computeStreak, computeLongestStreak, completionRate, categoryBreakdown } from '../utils/stats'
 
 export default function Stats() {
   const navigate = useNavigate()
   const { tasks } = useTasksContext()
+  const { isPremium } = usePremiumContext()
 
   const streak = computeStreak(tasks)
   const longestStreak = computeLongestStreak(tasks)
@@ -24,6 +27,11 @@ export default function Stats() {
       </header>
 
       <main className="screen__content">
+        <LockedOverlay
+          locked={!isPremium}
+          title="This is your real report"
+          subtitle="Unlock Premium to see your streaks and breakdown any time."
+        >
         <div className="stat-tile-row">
           <div className="card stat-tile">
             <p className="stat-tile__value">{streak}</p>
@@ -60,6 +68,7 @@ export default function Stats() {
             )}
           </div>
         </section>
+        </LockedOverlay>
       </main>
     </div>
   )

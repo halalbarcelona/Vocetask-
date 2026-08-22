@@ -8,10 +8,10 @@ import Toast from '../components/Toast'
 import BottomTabBar from '../components/BottomTabBar'
 import { CheckIcon, MicIcon, PlusIcon, SearchIcon, SpeakerIcon, TrashIcon } from '../components/icons'
 import { todayISO } from '../utils/dateUtils'
-import { remainingFreeTasks } from '../utils/plan'
 import { isDueOn, isOverdue } from '../utils/recurrence'
 import { computeStreak } from '../utils/stats'
 import { speakDailyRecap } from '../utils/speak'
+import { checkMilestone } from '../utils/milestones'
 
 const PRIORITY_RANK = { high: 3, medium: 2, low: 1, none: 0 }
 
@@ -42,7 +42,7 @@ export default function Home() {
     bulkRemoveTasks,
     bulkMarkDone,
   } = useTasksContext()
-  const { isPremium } = usePremiumContext()
+  const { isPremium, isPaid, trialActive, trialExpired, trialDaysLeft } = usePremiumContext()
   const { toast, showToast, dismissToast } = useToast()
   const [query, setQuery] = useState('')
   const [sortByPriority, setSortByPriority] = useState(false)
@@ -62,6 +62,27 @@ export default function Home() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Send them to the recap once, the first time they open the app after the
+  // trial lapses. The flag keeps it from reappearing on every visit.
+  useEffect(() => {
+    if (trialExpired && !isPaid && !localStorage.getItem('aura-trial-recap-seen')) {
+      localStorage.setItem('aura-trial-recap-seen', 'true')
+      navigate('/trial-ended')
+    }
+  }, [trialExpired, isPaid, navigate])
+
+  // Celebrate real progress, and only then mention Premium — people buy
+  // when they feel good about the app, not when it blocks them.
+  useEffect(() => {
+    const milestone = checkMilestone(tasks, computeStreak(tasks))
+    if (!milestone) return
+    showToast(milestone.message, {
+      actionLabel: isPaid ? undefined : 'See Premium',
+      onAction: isPaid ? undefined : () => navigate('/upgrade'),
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks])
 
   const today = todayISO()
   const isSearching = query.trim().length > 0
@@ -101,22 +122,11 @@ export default function Home() {
   // option that would produce an empty list.
   const usedCategories = [...new Set(tasks.filter((t) => isDueOn(t, today)).map((t) => t.category))]
 
-  const remaining = isPremium ? Infinity : remainingFreeTasks(tasks)
-  const outOfCredits = remaining <= 0
-
   const handleMicTap = () => {
-    if (outOfCredits) {
-      navigate('/upgrade')
-      return
-    }
     navigate('/record')
   }
 
   const handleManualAdd = () => {
-    if (outOfCredits) {
-      navigate('/upgrade')
-      return
-    }
     setDraftTask({ title: '', date: today, time: '', category: 'Personal', source: 'manual' })
     navigate('/confirm')
   }
@@ -131,15 +141,9 @@ export default function Home() {
 
   const handleSnooze = (id, newDate) => updateTask(id, { date: newDate })
 
-  // Quick-add deliberately spends a daily credit like any other new task —
-  // it removes navigation friction, not the free limit.
   const handleQuickAdd = () => {
     const title = quickAdd.trim()
     if (!title) return
-    if (outOfCredits) {
-      navigate('/upgrade')
-      return
-    }
     addTask({ title, date: today, time: '', category: 'Personal' })
     setQuickAdd('')
   }
@@ -152,10 +156,6 @@ export default function Home() {
   }
 
   const handleExampleTap = (example) => {
-    if (outOfCredits) {
-      navigate('/upgrade')
-      return
-    }
     navigate('/record', { state: { prefill: example } })
   }
 
@@ -259,12 +259,17 @@ export default function Home() {
       </header>
 
       <main className="screen__content">
-        {!isPremium && (
-          <p className="plan-hint">
-            {remaining > 0
-              ? `${remaining} free task${remaining === 1 ? '' : 's'} left today`
-              : "You've used today's free tasks — upgrade for unlimited."}
-          </p>
+        {trialActive && !isPaid && (
+          <button
+            type="button"
+            className={`trial-banner${trialDaysLeft <= 2 ? ' trial-banner--urgent' : ''}`}
+            onClick={() => navigate('/upgrade')}
+          >
+            <span>
+              ✨ Premium trial — {trialDaysLeft} day{trialDaysLeft === 1 ? '' : 's'} left
+            </span>
+            <span className="trial-banner__cta">Keep it →</span>
+          </button>
         )}
 
         {streak > 0 && (
@@ -412,22 +417,20 @@ export default function Home() {
                 <div className="empty-state">
                   <p>No tasks for today yet.</p>
                   <p className="empty-state__hint">
-                    {outOfCredits ? 'Upgrade for more.' : 'Try saying one out loud:'}
+                    Try saying one out loud:
                   </p>
-                  {!outOfCredits && (
-                    <div className="example-list">
-                      {VOICE_EXAMPLES.map((example) => (
-                        <button
-                          key={example}
-                          type="button"
-                          className="example-chip"
-                          onClick={() => handleExampleTap(example)}
-                        >
-                          <MicIcon width={13} height={13} /> “{example}”
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  <div className="example-list">
+                    {VOICE_EXAMPLES.map((example) => (
+                      <button
+                        key={example}
+                        type="button"
+                        className="example-chip"
+                        onClick={() => handleExampleTap(example)}
+                      >
+                        <MicIcon width={13} height={13} /> “{example}”
+                      </button>
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <div className="task-list">

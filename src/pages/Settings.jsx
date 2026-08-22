@@ -31,7 +31,7 @@ function PremiumRow({ isPremium, label, onClick }) {
 
 export default function Settings() {
   const navigate = useNavigate()
-  const { isPremium } = usePremiumContext()
+  const { isPremium, isPaid, trialActive, trialDaysLeft } = usePremiumContext()
   const { account } = useAccountContext()
   const { tasks, importTasks } = useTasksContext()
   const notifications = useNotifications(tasks)
@@ -99,17 +99,23 @@ export default function Settings() {
         <div className={`upgrade-banner${isPremium ? ' upgrade-banner--premium' : ''}`}>
           <div>
             <p className="upgrade-banner__title">
-              {isPremium ? 'Premium — lifetime' : 'You’re on Free'}
+              {isPaid
+                ? 'Premium — lifetime'
+                : trialActive
+                  ? `Premium trial — ${trialDaysLeft} day${trialDaysLeft === 1 ? '' : 's'} left`
+                  : 'You’re on Free'}
             </p>
             <p className="upgrade-banner__subtitle">
-              {isPremium
+              {isPaid
                 ? 'Paid once. Every feature, forever.'
-                : 'One-time payment — no subscription'}
+                : trialActive
+                  ? 'Keep every feature for one payment'
+                  : 'One-time payment — no subscription'}
             </p>
           </div>
-          {!isPremium && (
+          {!isPaid && (
             <button type="button" className="button button--light" onClick={() => navigate('/upgrade')}>
-              Upgrade
+              {trialActive ? 'Keep it' : 'Upgrade'}
             </button>
           )}
         </div>

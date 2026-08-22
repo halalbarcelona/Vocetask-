@@ -16,16 +16,11 @@ import AccountSettings from './pages/AccountSettings'
 import Privacy from './pages/Privacy'
 import Stats from './pages/Stats'
 import Templates from './pages/Templates'
+import TrialEnded from './pages/TrialEnded'
 
 function RequireAccount() {
   const { hasAccount } = useAccountContext()
   if (!hasAccount) return <Navigate to="/create-account" replace />
-  return <Outlet />
-}
-
-function RequirePremium() {
-  const { isPremium } = usePremiumContext()
-  if (!isPremium) return <Navigate to="/upgrade" replace />
   return <Outlet />
 }
 
@@ -61,10 +56,9 @@ export default function App() {
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/upgrade" element={<Upgrade />} />
                 <Route path="/upgrade-success" element={<UpgradeSuccess />} />
-                <Route element={<RequirePremium />}>
-                  <Route path="/stats" element={<Stats />} />
-                  <Route path="/templates" element={<Templates />} />
-                </Route>
+                <Route path="/stats" element={<Stats />} />
+                <Route path="/templates" element={<Templates />} />
+                <Route path="/trial-ended" element={<TrialEnded />} />
               </Route>
             </Routes>
           </CategoriesProvider>

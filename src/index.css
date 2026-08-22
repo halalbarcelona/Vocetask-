@@ -418,6 +418,12 @@ a {
   margin: 0;
 }
 
+.record-hint--upsell {
+  font-size: 12px;
+  text-align: center;
+  color: var(--accent);
+}
+
 .transcript {
   min-height: 60px;
   width: 100%;
@@ -509,6 +515,23 @@ a {
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.field__label-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: var(--radius-full);
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .field__input {
@@ -944,6 +967,10 @@ a {
   background: var(--accent-soft);
   color: var(--accent);
   border-color: var(--accent);
+}
+
+.recurrence-chip--locked {
+  opacity: 0.55;
 }
 
 /* Subtask input row (Confirm) */

@@ -76,7 +76,7 @@ export default function Record() {
   const handleDone = () => {
     recognitionRef.current?.stop()
 
-    const action = parseVoiceAction(transcript)
+    const action = isPremium ? parseVoiceAction(transcript) : { type: 'create' }
     if (action.type !== 'create') {
       const match = findBestMatchingTask(action.phrase, tasks)
       if (match) {
@@ -152,6 +152,12 @@ export default function Record() {
         <button type="button" className="button button--primary button--wide" onClick={handleDone} disabled={!transcript.trim()}>
           Done
         </button>
+
+        {!isPremium && (
+          <p className="record-hint record-hint--upsell">
+            Premium can also mark tasks done, delete, or reschedule them by voice.
+          </p>
+        )}
       </main>
     </div>
   )

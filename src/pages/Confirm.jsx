@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTasksContext } from '../hooks/TasksContext'
 import { usePremiumContext } from '../hooks/PremiumContext'
 import CategoryChip from '../components/CategoryChip'
-import { BackIcon, TrashIcon } from '../components/icons'
+import { BackIcon, LockIcon, TrashIcon } from '../components/icons'
 import { remainingFreeTasks } from '../utils/plan'
 
 const CATEGORIES = ['Personal', 'Work']
@@ -38,10 +38,22 @@ export default function Confirm() {
   const updateDraft = (updates) => setDraftTask({ ...draftTask, ...updates })
 
   const handleAddSubtask = () => {
+    if (!isPremium) {
+      navigate('/upgrade')
+      return
+    }
     const title = subtaskInput.trim()
     if (!title) return
     updateDraft({ subtasks: [...subtasks, { id: subtaskId(), title, done: false }] })
     setSubtaskInput('')
+  }
+
+  const handleSelectRecurrence = (value) => {
+    if (value !== 'none' && !isPremium) {
+      navigate('/upgrade')
+      return
+    }
+    updateDraft({ recurrence: value })
   }
 
   const handleRemoveSubtask = (id) => {
@@ -138,14 +150,16 @@ export default function Confirm() {
           </div>
 
           <div className="field">
-            <span className="field__label">Repeat</span>
+            <span className="field__label">
+              Repeat{!isPremium && <span className="field__label-badge"><LockIcon width={12} height={12} /> Premium</span>}
+            </span>
             <div className="recurrence-row">
               {RECURRENCE_OPTIONS.map((option) => (
                 <button
                   key={option.value}
                   type="button"
-                  className={`recurrence-chip${draftTask.recurrence === option.value || (!draftTask.recurrence && option.value === 'none') ? ' recurrence-chip--selected' : ''}`}
-                  onClick={() => updateDraft({ recurrence: option.value })}
+                  className={`recurrence-chip${draftTask.recurrence === option.value || (!draftTask.recurrence && option.value === 'none') ? ' recurrence-chip--selected' : ''}${option.value !== 'none' && !isPremium ? ' recurrence-chip--locked' : ''}`}
+                  onClick={() => handleSelectRecurrence(option.value)}
                 >
                   {option.label}
                 </button>
@@ -154,11 +168,13 @@ export default function Confirm() {
           </div>
 
           <div className="field">
-            <span className="field__label">Subtasks</span>
+            <span className="field__label">
+              Subtasks{!isPremium && <span className="field__label-badge"><LockIcon width={12} height={12} /> Premium</span>}
+            </span>
             <div className="subtask-input-row">
               <input
                 type="text"
-                placeholder="Add a subtask"
+                placeholder={isPremium ? 'Add a subtask' : 'Upgrade to add subtasks'}
                 value={subtaskInput}
                 onChange={(e) => setSubtaskInput(e.target.value)}
                 onKeyDown={(e) => {

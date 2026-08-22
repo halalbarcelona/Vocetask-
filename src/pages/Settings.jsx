@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BottomTabBar from '../components/BottomTabBar'
-import { ChevronIcon } from '../components/icons'
+import { ChevronIcon, LockIcon } from '../components/icons'
 import { usePremiumContext } from '../hooks/PremiumContext'
 import { useAccountContext } from '../hooks/AccountContext'
 import { useTasksContext } from '../hooks/TasksContext'
@@ -76,9 +76,12 @@ export default function Settings() {
             <button
               type="button"
               className="settings-row settings-row--link"
-              onClick={() => downloadICS(tasks)}
+              onClick={() => (isPremium ? downloadICS(tasks) : navigate('/upgrade'))}
             >
-              <span>Export to Calendar (.ics)</span>
+              <span>
+                Export to Calendar (.ics)
+                {!isPremium && <span className="field__label-badge"><LockIcon width={12} height={12} /> Premium</span>}
+              </span>
               <ChevronIcon />
             </button>
           </div>

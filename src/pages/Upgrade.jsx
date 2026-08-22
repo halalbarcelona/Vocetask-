@@ -2,13 +2,18 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BackIcon, CheckIcon, LockIcon, MicIcon } from '../components/icons'
 import { useAccountContext } from '../hooks/AccountContext'
+import { FREE_DAILY_TASK_LIMIT } from '../utils/plan'
 
 const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
 const STRIPE_BUY_BUTTON_ID = import.meta.env.VITE_STRIPE_BUY_BUTTON_ID
 const STRIPE_CONFIGURED = Boolean(STRIPE_PUBLISHABLE_KEY && STRIPE_BUY_BUTTON_ID)
 
 const FEATURES = [
-  { label: 'Tasks (voice + manual)', free: '3 a day', premium: 'Unlimited' },
+  { label: 'Tasks (voice + manual)', free: `${FREE_DAILY_TASK_LIMIT} a day`, premium: 'Unlimited' },
+  { label: 'Recurring tasks', free: '—', premium: 'Daily / Weekly' },
+  { label: 'Subtasks / checklists', free: '—', premium: 'Included' },
+  { label: 'Voice actions (done, delete, reschedule)', free: '—', premium: 'Included' },
+  { label: 'Calendar export (.ics)', free: '—', premium: 'Included' },
   { label: 'Support', free: '—', premium: 'Priority' },
 ]
 
@@ -59,7 +64,8 @@ export default function Upgrade() {
           </div>
           <h2 className="paywall-hero__title">You’ve used today’s free tasks</h2>
           <p className="paywall-hero__subtitle">
-            Free plans get 3 tasks a day, by voice or by hand. Upgrade for unlimited tasks, any time.
+            Free plans get {FREE_DAILY_TASK_LIMIT} tasks a day, by voice or by hand. Upgrade for unlimited
+            tasks, recurring reminders, subtasks, voice actions, and calendar export.
           </p>
         </div>
 

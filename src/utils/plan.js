@@ -1,6 +1,6 @@
 import { toISODate, todayISO } from './dateUtils'
 
-export const FREE_DAILY_TASK_LIMIT = 3
+export const FREE_DAILY_TASK_LIMIT = 6
 
 export function tasksCreatedToday(tasks) {
   const today = todayISO()

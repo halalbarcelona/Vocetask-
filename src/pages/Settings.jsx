@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BottomTabBar from '../components/BottomTabBar'
-import { ChevronIcon, LockIcon } from '../components/icons'
+import { ChevronIcon, LockIcon, MoonIcon, SunIcon } from '../components/icons'
 import { usePremiumContext } from '../hooks/PremiumContext'
 import { useAccountContext } from '../hooks/AccountContext'
 import { useTasksContext } from '../hooks/TasksContext'
 import { useNotifications } from '../hooks/useNotifications'
+import { useTheme } from '../hooks/useTheme'
 import { downloadICS } from '../utils/icsExport'
 import { exportTasksJSON, parseBackupFile } from '../utils/backup'
 import { buildTodaySummary, shareText } from '../utils/share'
@@ -34,6 +35,7 @@ export default function Settings() {
   const { account } = useAccountContext()
   const { tasks, importTasks } = useTasksContext()
   const notifications = useNotifications(tasks)
+  const { theme, setTheme } = useTheme()
   const [calendarSync, setCalendarSync] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
   const importInputRef = useRef(null)
@@ -96,9 +98,13 @@ export default function Settings() {
 
         <div className={`upgrade-banner${isPremium ? ' upgrade-banner--premium' : ''}`}>
           <div>
-            <p className="upgrade-banner__title">{isPremium ? 'You’re on Premium' : 'You’re on Free'}</p>
+            <p className="upgrade-banner__title">
+              {isPremium ? 'Premium — lifetime' : 'You’re on Free'}
+            </p>
             <p className="upgrade-banner__subtitle">
-              {isPremium ? 'Unlimited tasks, voice or manual' : 'Upgrade for unlimited tasks'}
+              {isPremium
+                ? 'Paid once. Every feature, forever.'
+                : 'One-time payment — no subscription'}
             </p>
           </div>
           {!isPremium && (
@@ -121,6 +127,27 @@ export default function Settings() {
                 onChange={notifications.setEnabled}
                 label="Push Notifications"
               />
+            </div>
+            <div className="settings-row">
+              <span>Appearance</span>
+              <div className="theme-row">
+                {[
+                  { value: 'system', label: 'Auto' },
+                  { value: 'light', label: 'Light', icon: <SunIcon width={13} height={13} /> },
+                  { value: 'dark', label: 'Dark', icon: <MoonIcon width={13} height={13} /> },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={`theme-chip${theme === option.value ? ' theme-chip--active' : ''}`}
+                    onClick={() => setTheme(option.value)}
+                    aria-pressed={theme === option.value}
+                  >
+                    {option.icon}
+                    {option.label}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="settings-row">
               <span>Calendar Sync</span>

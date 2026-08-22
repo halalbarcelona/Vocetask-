@@ -73,18 +73,19 @@ export default function Upgrade() {
           <div className="paywall-hero__icon">
             <MicIcon width={28} height={28} />
           </div>
-          <h2 className="paywall-hero__title">You’ve used today’s free tasks</h2>
+          <h2 className="paywall-hero__title">Unlock everything, once</h2>
           <p className="paywall-hero__subtitle">
-            Free plans get {FREE_DAILY_TASK_LIMIT} tasks a day, by voice or by hand. Upgrade for unlimited
-            tasks, recurring reminders, subtasks, voice actions, and calendar export.
+            Free gives you {FREE_DAILY_TASK_LIMIT} tasks a day, by voice or by hand. Premium unlocks every
+            feature below — recurring tasks, subtasks, priorities, templates, reports and more.
           </p>
+          <p className="paywall-hero__badge">One-time payment · Yours forever · No subscription</p>
         </div>
 
         <div className="card plan-table">
           <div className="plan-table__row plan-table__row--header">
             <span />
             <span>Free</span>
-            <span>Premium</span>
+            <span>Premium · one-time</span>
           </div>
           {FEATURES.map((row) => (
             <div className="plan-table__row" key={row.label}>

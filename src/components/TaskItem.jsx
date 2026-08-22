@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import CategoryChip from './CategoryChip'
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon, RepeatIcon, TrashIcon } from './icons'
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon, PencilIcon, RepeatIcon, TrashIcon } from './icons'
 import { formatTimeLabel, todayISO, tomorrowISO } from '../utils/dateUtils'
 
 export default function TaskItem({
@@ -12,6 +12,7 @@ export default function TaskItem({
   isLast,
   onToggleSubtask,
   onSnooze,
+  onEdit,
   isPremium,
   selectMode,
   selected,
@@ -97,6 +98,17 @@ export default function TaskItem({
               <ChevronDownIcon />
             </button>
           </div>
+        )}
+
+        {!selectMode && onEdit && (
+          <button
+            type="button"
+            className="task-card__edit"
+            onClick={() => onEdit(task)}
+            aria-label={`Edit ${task.title || 'task'}`}
+          >
+            <PencilIcon />
+          </button>
         )}
 
         {!selectMode && onDelete && (

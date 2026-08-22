@@ -62,7 +62,7 @@ function PremiumLabel({ isPremium, children }) {
 
 export default function Confirm() {
   const navigate = useNavigate()
-  const { tasks, draftTask, setDraftTask, addTask, clearDraft } = useTasksContext()
+  const { tasks, draftTask, setDraftTask, addTask, updateTask, clearDraft } = useTasksContext()
   const { isPremium } = usePremiumContext()
   const { categories, addCategory } = useCategoriesContext()
   const { saveTemplate } = useTemplates()
@@ -75,7 +75,10 @@ export default function Confirm() {
 
   if (!draftTask) return null
 
-  const remaining = isPremium ? Infinity : remainingFreeTasks(tasks)
+  // An existing task being edited carries its id; a brand-new draft doesn't.
+  // Edits never consume a daily credit — only creating a task does.
+  const isEditing = Boolean(draftTask.id)
+  const remaining = isPremium || isEditing ? Infinity : remainingFreeTasks(tasks)
   const limitReached = remaining <= 0
   const subtasks = draftTask.subtasks ?? []
   const recurrenceDays = draftTask.recurrenceDays ?? []
@@ -146,6 +149,13 @@ export default function Confirm() {
       navigate('/upgrade')
       return
     }
+    if (isEditing) {
+      const { id, source, ...updates } = draftTask
+      updateTask(id, updates)
+      clearDraft()
+      navigate('/', { state: { toast: 'Task updated' } })
+      return
+    }
     addTask(draftTask)
     clearDraft()
     navigate('/')
@@ -156,8 +166,9 @@ export default function Confirm() {
     navigate('/')
   }
 
-  const hint =
-    draftTask.source === 'voice'
+  const hint = isEditing
+    ? 'Edit this task and save your changes.'
+    : draftTask.source === 'voice'
       ? 'Check the details — we parsed your voice command. Tap any field to edit.'
       : 'Fill in the details for your task.'
 
@@ -167,14 +178,14 @@ export default function Confirm() {
         <button type="button" className="icon-button" onClick={handleDiscard} aria-label="Discard and go back">
           <BackIcon />
         </button>
-        <h1 className="page-header__title">Confirm Task</h1>
+        <h1 className="page-header__title">{isEditing ? 'Edit Task' : 'Confirm Task'}</h1>
         <span className="icon-button icon-button--spacer" />
       </header>
 
       <main className="screen__content">
         <p className="confirm-hint">{hint}</p>
 
-        {!isPremium && (
+        {!isPremium && !isEditing && (
           <p className={`plan-hint${limitReached ? ' plan-hint--warning' : ''}`}>
             {limitReached
               ? "You've used today's free tasks — upgrade for unlimited."
@@ -357,13 +368,13 @@ export default function Confirm() {
 
         <div className="confirm-actions">
           <button type="button" className="button button--primary button--wide" onClick={handleSave}>
-            {limitReached ? 'Upgrade to Save' : 'Save Task'}
+            {limitReached ? 'Upgrade to Save' : isEditing ? 'Save Changes' : 'Save Task'}
           </button>
           <button type="button" className="button button--ghost button--wide" onClick={handleSaveTemplate}>
             {templateSaved ? 'Saved as Template ✓' : 'Save as Template'}
           </button>
           <button type="button" className="button button--ghost button--wide" onClick={handleDiscard}>
-            Discard
+            {isEditing ? 'Cancel' : 'Discard'}
           </button>
         </div>
       </main>

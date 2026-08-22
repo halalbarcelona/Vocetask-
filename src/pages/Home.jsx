@@ -9,11 +9,19 @@ import BottomTabBar from '../components/BottomTabBar'
 import { CheckIcon, MicIcon, PlusIcon, SearchIcon, SpeakerIcon, TrashIcon } from '../components/icons'
 import { todayISO } from '../utils/dateUtils'
 import { remainingFreeTasks } from '../utils/plan'
-import { isDueOn } from '../utils/recurrence'
+import { isDueOn, isOverdue } from '../utils/recurrence'
 import { computeStreak } from '../utils/stats'
 import { speakDailyRecap } from '../utils/speak'
 
 const PRIORITY_RANK = { high: 3, medium: 2, low: 1, none: 0 }
+
+// Shown in the first-run empty state so the Hinglish parsing — the thing that
+// makes this app different — gets discovered instead of sitting undiscovered.
+const VOICE_EXAMPLES = [
+  'kal subah 9 baje call mummy',
+  'aaj shaam 6 baje gym',
+  'Team meeting tomorrow at 3pm',
+]
 
 const SpeechRecognitionAPI =
   typeof window !== 'undefined' ? window.SpeechRecognition || window.webkitSpeechRecognition : undefined
@@ -23,6 +31,7 @@ export default function Home() {
   const location = useLocation()
   const {
     tasks,
+    addTask,
     toggleDone,
     setDraftTask,
     removeTask,
@@ -40,6 +49,8 @@ export default function Home() {
   const [selectMode, setSelectMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState([])
   const [listening, setListening] = useState(false)
+  const [quickAdd, setQuickAdd] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('All')
   const recognitionRef = useRef(null)
 
   useEffect(() => {
@@ -55,12 +66,27 @@ export default function Home() {
   const today = todayISO()
   const isSearching = query.trim().length > 0
 
-  let todayTasks = tasks.filter((t) => isDueOn(t, today)).sort((a, b) => a.order - b.order)
+  const matchesCategory = (t) => categoryFilter === 'All' || t.category === categoryFilter
+
+  let todayTasks = tasks
+    .filter((t) => isDueOn(t, today) && matchesCategory(t))
+    .sort((a, b) => a.order - b.order)
   if (isPremium && sortByPriority) {
     todayTasks = [...todayTasks].sort(
       (a, b) => (PRIORITY_RANK[b.priority] ?? 0) - (PRIORITY_RANK[a.priority] ?? 0),
     )
   }
+
+  // Split today's list so finished work collapses to the bottom and the
+  // active list stays short.
+  const isTaskDone = (t) =>
+    t.recurrence && t.recurrence !== 'none' ? (t.completedDates ?? []).includes(today) : t.done
+  const activeToday = todayTasks.filter((t) => !isTaskDone(t))
+  const doneToday = todayTasks.filter(isTaskDone)
+
+  const overdueTasks = tasks
+    .filter((t) => isOverdue(t, today) && matchesCategory(t))
+    .sort((a, b) => (a.date + (a.time || '99:99')).localeCompare(b.date + (b.time || '99:99')))
 
   const searchResults = isSearching
     ? tasks
@@ -68,9 +94,12 @@ export default function Home() {
         .sort((a, b) => (a.date + (a.time || '99:99')).localeCompare(b.date + (b.time || '99:99')))
     : []
 
-  const visibleTasks = isSearching ? searchResults : todayTasks
   const todayTaskIds = todayTasks.map((t) => t.id)
   const streak = computeStreak(tasks)
+
+  // Categories actually in use today, so the filter row never shows an
+  // option that would produce an empty list.
+  const usedCategories = [...new Set(tasks.filter((t) => isDueOn(t, today)).map((t) => t.category))]
 
   const remaining = isPremium ? Infinity : remainingFreeTasks(tasks)
   const outOfCredits = remaining <= 0
@@ -101,6 +130,34 @@ export default function Home() {
   }
 
   const handleSnooze = (id, newDate) => updateTask(id, { date: newDate })
+
+  // Quick-add deliberately spends a daily credit like any other new task —
+  // it removes navigation friction, not the free limit.
+  const handleQuickAdd = () => {
+    const title = quickAdd.trim()
+    if (!title) return
+    if (outOfCredits) {
+      navigate('/upgrade')
+      return
+    }
+    addTask({ title, date: today, time: '', category: 'Personal' })
+    setQuickAdd('')
+  }
+
+  // Reopens an existing task in the Confirm screen. The id riding along in
+  // the draft is what makes Confirm save an update instead of a new task.
+  const handleEdit = (task) => {
+    setDraftTask({ ...task })
+    navigate('/confirm')
+  }
+
+  const handleExampleTap = (example) => {
+    if (outOfCredits) {
+      navigate('/upgrade')
+      return
+    }
+    navigate('/record', { state: { prefill: example } })
+  }
 
   const handleSpeakRecap = () => speakDailyRecap(todayTasks)
 
@@ -235,53 +292,190 @@ export default function Home() {
           </button>
         </div>
 
-        <section>
-          <div className="section-title-row">
-            <h2 className="section-title">{isSearching ? 'Search Results' : 'Today'}</h2>
-            {!isSearching && (
-              <button
-                type="button"
-                className={`sort-toggle${sortByPriority ? ' sort-toggle--active' : ''}`}
-                onClick={handleTogglePrioritySort}
-              >
-                Sort by priority
-              </button>
+        {isSearching ? (
+          <section>
+            <h2 className="section-title">Search Results</h2>
+            {searchResults.length === 0 ? (
+              <div className="empty-state">
+                <p>No matching tasks.</p>
+              </div>
+            ) : (
+              <div className="task-list">
+                {searchResults.map((task) => (
+                  <TaskItem
+                    key={task.id}
+                    task={task}
+                    onToggle={toggleDone}
+                    onDelete={handleDelete}
+                    onEdit={handleEdit}
+                    onToggleSubtask={toggleSubtask}
+                    onSnooze={handleSnooze}
+                    isPremium={isPremium}
+                    selectMode={selectMode}
+                    selected={selectedIds.includes(task.id)}
+                    onToggleSelect={handleToggleSelect}
+                  />
+                ))}
+              </div>
             )}
-          </div>
-
-          {visibleTasks.length === 0 ? (
-            <div className="empty-state">
-              <p>{isSearching ? 'No matching tasks.' : 'No tasks for today yet.'}</p>
-              {!isSearching && (
-                <p className="empty-state__hint">
-                  {outOfCredits ? 'Upgrade for more.' : 'Tap the mic or + to add one.'}
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="task-list">
-              {visibleTasks.map((task) => (
-                <TaskItem
-                  key={task.id}
-                  task={task}
-                  onToggle={toggleDone}
-                  onDelete={handleDelete}
-                  onToggleSubtask={toggleSubtask}
-                  onSnooze={handleSnooze}
-                  isPremium={isPremium}
-                  onReorder={
-                    isSearching || sortByPriority ? undefined : (id, dir) => reorderTask(id, dir, todayTaskIds)
-                  }
-                  isFirst={!isSearching && todayTaskIds.indexOf(task.id) === 0}
-                  isLast={!isSearching && todayTaskIds.indexOf(task.id) === todayTaskIds.length - 1}
-                  selectMode={selectMode}
-                  selected={selectedIds.includes(task.id)}
-                  onToggleSelect={handleToggleSelect}
+          </section>
+        ) : (
+          <>
+            {!selectMode && (
+              <div className="quick-add">
+                <PlusIcon width={16} height={16} />
+                <input
+                  type="text"
+                  placeholder="Quick add a task for today…"
+                  value={quickAdd}
+                  onChange={(e) => setQuickAdd(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      handleQuickAdd()
+                    }
+                  }}
                 />
-              ))}
-            </div>
-          )}
-        </section>
+                {quickAdd.trim() && (
+                  <button type="button" className="button button--primary button--compact" onClick={handleQuickAdd}>
+                    Add
+                  </button>
+                )}
+              </div>
+            )}
+
+            {usedCategories.length > 1 && (
+              <div className="filter-row">
+                {['All', ...usedCategories].map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    className={`filter-chip${categoryFilter === option ? ' filter-chip--active' : ''}`}
+                    onClick={() => setCategoryFilter(option)}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {overdueTasks.length > 0 && (
+              <section>
+                <h2 className="section-title section-title--danger">Overdue · {overdueTasks.length}</h2>
+                <div className="task-list">
+                  {overdueTasks.map((task) => (
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      onToggle={toggleDone}
+                      onDelete={handleDelete}
+                      onEdit={handleEdit}
+                      onToggleSubtask={toggleSubtask}
+                      onSnooze={handleSnooze}
+                      isPremium={isPremium}
+                      selectMode={selectMode}
+                      selected={selectedIds.includes(task.id)}
+                      onToggleSelect={handleToggleSelect}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            <section>
+              <div className="section-title-row">
+                <h2 className="section-title">Today</h2>
+                <button
+                  type="button"
+                  className={`sort-toggle${sortByPriority ? ' sort-toggle--active' : ''}`}
+                  onClick={handleTogglePrioritySort}
+                >
+                  Sort by priority
+                </button>
+              </div>
+
+              {todayTasks.length > 0 && (
+                <div className="progress">
+                  <div className="progress__track">
+                    <div
+                      className="progress__fill"
+                      style={{ width: `${(doneToday.length / todayTasks.length) * 100}%` }}
+                    />
+                  </div>
+                  <span className="progress__label">
+                    {doneToday.length} of {todayTasks.length} done
+                  </span>
+                </div>
+              )}
+
+              {todayTasks.length === 0 ? (
+                <div className="empty-state">
+                  <p>No tasks for today yet.</p>
+                  <p className="empty-state__hint">
+                    {outOfCredits ? 'Upgrade for more.' : 'Try saying one out loud:'}
+                  </p>
+                  {!outOfCredits && (
+                    <div className="example-list">
+                      {VOICE_EXAMPLES.map((example) => (
+                        <button
+                          key={example}
+                          type="button"
+                          className="example-chip"
+                          onClick={() => handleExampleTap(example)}
+                        >
+                          <MicIcon width={13} height={13} /> “{example}”
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="task-list">
+                  {activeToday.map((task) => (
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      onToggle={toggleDone}
+                      onDelete={handleDelete}
+                      onEdit={handleEdit}
+                      onToggleSubtask={toggleSubtask}
+                      onSnooze={handleSnooze}
+                      isPremium={isPremium}
+                      onReorder={sortByPriority ? undefined : (id, dir) => reorderTask(id, dir, todayTaskIds)}
+                      isFirst={todayTaskIds.indexOf(task.id) === 0}
+                      isLast={todayTaskIds.indexOf(task.id) === todayTaskIds.length - 1}
+                      selectMode={selectMode}
+                      selected={selectedIds.includes(task.id)}
+                      onToggleSelect={handleToggleSelect}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {doneToday.length > 0 && (
+              <section>
+                <h2 className="section-title">Done · {doneToday.length}</h2>
+                <div className="task-list">
+                  {doneToday.map((task) => (
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      onToggle={toggleDone}
+                      onDelete={handleDelete}
+                      onEdit={handleEdit}
+                      onToggleSubtask={toggleSubtask}
+                      isPremium={isPremium}
+                      selectMode={selectMode}
+                      selected={selectedIds.includes(task.id)}
+                      onToggleSelect={handleToggleSelect}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
+        )}
       </main>
 
       {selectMode && selectedIds.length > 0 && (

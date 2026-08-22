@@ -11,6 +11,14 @@
     <link rel="apple-touch-icon" href="/Vocetask-/icons/apple-touch-icon.png" />
     <link rel="icon" type="image/png" href="/Vocetask-/icons/favicon-48.png" />
     <title>Aura Task</title>
+    <script>
+      // Applies the saved theme before first paint so a dark-mode user
+      // doesn't get a flash of the light palette on every load.
+      try {
+        var t = localStorage.getItem('aura-theme')
+        if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t)
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

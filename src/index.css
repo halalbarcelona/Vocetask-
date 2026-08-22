@@ -12,10 +12,67 @@
   --work-soft: #f1ebfe;
   --personal: #1a56db;
   --personal-soft: #e8effc;
+  --danger-soft: #fde2e1;
+  /* Text/icon color that sits ON an accent-filled surface. Flips to a dark
+     ink in dark mode, where the accent itself becomes light. */
+  --on-accent: #ffffff;
+  /* Fixed brand blues for the always-blue upgrade banner, so its white text
+     and white pill stay legible regardless of theme. */
+  --brand: #1a56db;
+  --brand-dark: #1544ad;
+  --toast-bg: #101828;
+  --toast-text: #ffffff;
   --radius-lg: 20px;
   --radius-md: 14px;
   --radius-full: 999px;
   --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.06);
+}
+
+/* Dark palette. Only the color tokens are redefined — every other token
+   (radii, shadows) and all component rules stay shared. Declared twice so
+   that "system" follows the OS while an explicit choice always wins. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --accent: #6f9aef;
+    --accent-dark: #5580d8;
+    --accent-soft: #1e2a44;
+    --bg: #0f1117;
+    --surface: #181b23;
+    --text: #f0f2f6;
+    --text-muted: #98a2b3;
+    --border: #2a2f3a;
+    --danger: #f2665c;
+    --danger-soft: #3a1f1e;
+    --work: #a78bfa;
+    --work-soft: #2a2340;
+    --personal: #6f9aef;
+    --personal-soft: #1e2a44;
+    --on-accent: #0f1117;
+    --toast-bg: #2a2f3a;
+    --toast-text: #f0f2f6;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.35);
+  }
+}
+
+:root[data-theme='dark'] {
+  --accent: #6f9aef;
+  --accent-dark: #5580d8;
+  --accent-soft: #1e2a44;
+  --bg: #0f1117;
+  --surface: #181b23;
+  --text: #f0f2f6;
+  --text-muted: #98a2b3;
+  --border: #2a2f3a;
+  --danger: #f2665c;
+  --danger-soft: #3a1f1e;
+  --work: #a78bfa;
+  --work-soft: #2a2340;
+  --personal: #6f9aef;
+  --personal-soft: #1e2a44;
+  --on-accent: #0f1117;
+  --toast-bg: #2a2f3a;
+  --toast-text: #f0f2f6;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 
 * {
@@ -114,7 +171,7 @@ a {
 
 .icon-button--accent {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .section-title {
@@ -164,7 +221,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .task-card__checkbox--checked {
@@ -448,7 +505,7 @@ a {
   border-radius: var(--radius-full);
   border: none;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -549,7 +606,7 @@ a {
 
 .button--primary {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .button--compact {
@@ -575,7 +632,7 @@ a {
 
 .button--light {
   background: #fff;
-  color: var(--accent);
+  color: var(--brand);
   padding: 10px 16px;
   font-size: 13px;
 }
@@ -674,7 +731,7 @@ a {
 
 .segmented__item--active {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .month-nav {
@@ -731,7 +788,7 @@ a {
 
 .calendar-day--selected {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .calendar-day__dot {
@@ -793,7 +850,7 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  background: linear-gradient(135deg, var(--brand), var(--brand-dark));
   color: #fff;
   border-radius: var(--radius-lg);
   padding: 16px 18px;
@@ -903,7 +960,7 @@ a {
   margin: 0 auto 14px;
   border-radius: var(--radius-full);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -984,8 +1041,8 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: #101828;
-  color: #fff;
+  background: var(--toast-bg);
+  color: var(--toast-text);
   border-radius: var(--radius-md);
   padding: 12px 16px;
   box-shadow: 0 8px 24px rgba(16, 24, 40, 0.3);
@@ -1245,7 +1302,7 @@ a {
 .task-card__select-checkbox--checked {
   background: var(--accent);
   border-color: var(--accent);
-  color: white;
+  color: var(--on-accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1297,4 +1354,161 @@ a {
   color: var(--text-muted);
   margin: 0 0 8px;
   white-space: pre-wrap;
+}
+
+/* Overdue heading */
+.section-title--danger {
+  color: var(--danger);
+}
+
+/* Today progress */
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.progress__track {
+  flex: 1;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--border);
+  overflow: hidden;
+}
+
+.progress__fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: var(--radius-full);
+  transition: width 0.2s ease;
+}
+
+.progress__label {
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* Quick add */
+.quick-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border-radius: var(--radius-full);
+  padding: 10px 14px;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 12px;
+  color: var(--text-muted);
+}
+
+.quick-add input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.quick-add input:focus {
+  outline: none;
+}
+
+/* Category filter chips */
+.filter-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.filter-chip {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  border-radius: var(--radius-full);
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.filter-chip--active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Voice examples in the empty state */
+.example-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  width: 100%;
+}
+
+.example-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px dashed var(--border);
+  background: var(--surface);
+  color: var(--accent);
+  border-radius: var(--radius-full);
+  padding: 9px 14px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Edit button on a task card */
+.task-card__edit {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+}
+
+/* Theme picker (Settings) */
+.theme-row {
+  display: flex;
+  gap: 8px;
+}
+
+.theme-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  border-radius: var(--radius-full);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.theme-chip--active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.paywall-hero__badge {
+  display: inline-block;
+  margin: 10px 0 0;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
 }

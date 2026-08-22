@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useTasksContext } from '../hooks/TasksContext'
 import { usePremiumContext } from '../hooks/PremiumContext'
 import { BackIcon, MicIcon } from '../components/icons'
@@ -17,7 +17,10 @@ export default function Record() {
   const { isPremium } = usePremiumContext()
   const outOfCredits = !isPremium && remainingFreeTasks(tasks) <= 0
 
-  const [transcript, setTranscript] = useState('')
+  const location = useLocation()
+  // Tapping an example on Home's empty state lands here with the phrase
+  // already filled in, so the user can hit Done and see the parsing work.
+  const [transcript, setTranscript] = useState(location.state?.prefill ?? '')
   const [isListening, setIsListening] = useState(false)
   const recognitionRef = useRef(null)
 

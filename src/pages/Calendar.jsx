@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTasksContext } from '../hooks/TasksContext'
 import TaskItem from '../components/TaskItem'
 import BottomTabBar from '../components/BottomTabBar'
@@ -13,7 +14,13 @@ import {
 } from '../utils/dateUtils'
 
 export default function Calendar() {
-  const { tasks, toggleDone } = useTasksContext()
+  const navigate = useNavigate()
+  const { tasks, toggleDone, setDraftTask } = useTasksContext()
+
+  const handleEdit = (task) => {
+    setDraftTask({ ...task })
+    navigate('/confirm')
+  }
   const [view, setView] = useState('month')
   const [cursor, setCursor] = useState(() => new Date())
   const [selectedDate, setSelectedDate] = useState(todayISO())
@@ -133,7 +140,7 @@ export default function Calendar() {
               ) : (
                 <div className="task-list">
                   {selectedDayTasks.map((task) => (
-                    <TaskItem key={task.id} task={task} onToggle={toggleDone} />
+                    <TaskItem key={task.id} task={task} onToggle={toggleDone} onEdit={handleEdit} />
                   ))}
                 </div>
               )}
@@ -151,7 +158,7 @@ export default function Calendar() {
                   <h2 className="section-title">{formatDateLabel(group.date)}</h2>
                   <div className="task-list">
                     {group.tasks.map((task) => (
-                      <TaskItem key={task.id} task={task} onToggle={toggleDone} />
+                      <TaskItem key={task.id} task={task} onToggle={toggleDone} onEdit={handleEdit} />
                     ))}
                   </div>
                 </div>

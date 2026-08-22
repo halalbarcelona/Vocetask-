@@ -3,9 +3,29 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useTasksContext } from '../hooks/TasksContext'
 import { usePremiumContext } from '../hooks/PremiumContext'
 import { BackIcon, MicIcon } from '../components/icons'
-import { parseVoiceCommand } from '../utils/voiceParser'
+import { parseConfidence, parseVoiceCommand } from '../utils/voiceParser'
 import { findBestMatchingTask, parseVoiceAction } from '../utils/voiceAction'
-import { tomorrowISO, todayISO } from '../utils/dateUtils'
+
+// Speech engines rank alternatives by acoustic confidence, which handles
+// code-switched Hindi-English badly — the top pick is often the one our
+// parser can make least sense of. Asking for several and keeping the one
+// that yields the most structure is a free accuracy win.
+const MAX_ALTERNATIVES = 4
+
+function bestAlternative(result) {
+  let best = result[0]?.transcript ?? ''
+  let bestScore = parseConfidence(best)
+  for (let i = 1; i < result.length; i++) {
+    const candidate = result[i]?.transcript
+    if (!candidate) continue
+    const score = parseConfidence(candidate)
+    if (score > bestScore) {
+      bestScore = score
+      best = candidate
+    }
+  }
+  return best
+}
 
 const SpeechRecognitionAPI =
   typeof window !== 'undefined' ? window.SpeechRecognition || window.webkitSpeechRecognition : undefined
@@ -30,15 +50,18 @@ export default function Record() {
     const recognition = new SpeechRecognitionAPI()
     recognition.continuous = true
     recognition.interimResults = true
-    recognition.lang = 'en-US'
+    recognition.maxAlternatives = MAX_ALTERNATIVES
+    recognition.lang = 'en-IN'
 
     recognition.onresult = (event) => {
       let finalText = ''
       let interimText = ''
       for (let i = 0; i < event.results.length; i++) {
         const result = event.results[i]
+        // Only finalised results carry meaningful alternatives; interim ones
+        // change on every frame, so scoring them just causes flicker.
         if (result.isFinal) {
-          finalText += result[0].transcript
+          finalText += bestAlternative(result)
         } else {
           interimText += result[0].transcript
         }
@@ -84,8 +107,10 @@ export default function Record() {
           removeTask(match.id)
           navigate('/', { state: { toast: `Deleted "${match.title}"`, undoTask: match } })
         } else if (action.type === 'reschedule') {
-          const newDate = action.newDay === 'tomorrow' ? tomorrowISO() : todayISO()
-          updateTask(match.id, { date: newDate })
+          // Reuse the task parser's date logic so reschedule understands
+          // every day word it does — "parso", weekday names, Devanagari.
+          const { date } = parseVoiceCommand(action.newDay)
+          updateTask(match.id, { date })
           navigate('/', { state: { toast: `Moved "${match.title}" to ${action.newDay}` } })
         }
         return

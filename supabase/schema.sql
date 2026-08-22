@@ -1,46 +1,22 @@
 -- Run this in the Supabase SQL editor (Project → SQL Editor → New query) once, after project creation.
+--
+-- This backend has exactly one job: hold a server-verified premium flag per
+-- account email, so the Stripe payment actually means something (rather than
+-- the old client-side-only "aura-premium" flag anyone could flip in devtools).
+-- Accounts and tasks stay fully local (localStorage) — this table is not a
+-- users/profiles table and nothing else is synced.
 
-create table if not exists profiles (
-  id uuid references auth.users on delete cascade primary key,
-  name text,
-  email text,
+create table if not exists premium_status (
+  email text primary key,
   is_premium boolean not null default false,
-  created_at timestamptz not null default now()
+  updated_at timestamptz not null default now()
 );
 
-create table if not exists tasks (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users on delete cascade not null,
-  title text not null default '',
-  date date,
-  time text,
-  category text not null default 'Personal',
-  done boolean not null default false,
-  created_at timestamptz not null default now()
-);
+alter table premium_status enable row level security;
 
-alter table profiles enable row level security;
-alter table tasks enable row level security;
-
-create policy "profiles: read own" on profiles for select using (auth.uid() = id);
-create policy "profiles: update own" on profiles for update using (auth.uid() = id);
-create policy "profiles: insert own" on profiles for insert with check (auth.uid() = id);
-
-create policy "tasks: read own" on tasks for select using (auth.uid() = user_id);
-create policy "tasks: insert own" on tasks for insert with check (auth.uid() = user_id);
-create policy "tasks: update own" on tasks for update using (auth.uid() = user_id);
-create policy "tasks: delete own" on tasks for delete using (auth.uid() = user_id);
-
--- Creates a profiles row automatically whenever a new user signs up (magic link).
-create or replace function public.handle_new_user()
-returns trigger as $$
-begin
-  insert into public.profiles (id, email)
-  values (new.id, new.email);
-  return new;
-end;
-$$ language plpgsql security definer;
-
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute procedure public.handle_new_user();
+-- Anyone can read their own premium status by email (no auth session exists
+-- to scope this further — the app has no login). There is deliberately no
+-- insert/update/delete policy: the anon key can never write to this table.
+-- Only the stripe-webhook Edge Function (using the service_role key, which
+-- bypasses RLS entirely) can write.
+create policy "premium_status: read all" on premium_status for select using (true);

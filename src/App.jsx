@@ -1,6 +1,7 @@
+import { useEffect } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { TasksProvider } from './hooks/TasksContext'
-import { PremiumProvider } from './hooks/PremiumContext'
+import { PremiumProvider, usePremiumContext } from './hooks/PremiumContext'
 import { AccountProvider, useAccountContext } from './hooks/AccountContext'
 import Home from './pages/Home'
 import Record from './pages/Record'
@@ -19,10 +20,24 @@ function RequireAccount() {
   return <Outlet />
 }
 
+// Checks the backend once per account so a premium purchase made on another
+// device (or verified after a webhook delay) is picked up here too.
+function PremiumBackendSync() {
+  const { account } = useAccountContext()
+  const { syncFromBackend } = usePremiumContext()
+
+  useEffect(() => {
+    if (account?.email) syncFromBackend(account.email)
+  }, [account?.email, syncFromBackend])
+
+  return null
+}
+
 export default function App() {
   return (
     <AccountProvider>
       <PremiumProvider>
+        <PremiumBackendSync />
         <TasksProvider>
           <Routes>
             <Route path="/create-account" element={<CreateAccount />} />

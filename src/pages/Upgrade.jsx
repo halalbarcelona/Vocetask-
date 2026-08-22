@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BackIcon, CheckIcon, LockIcon, MicIcon } from '../components/icons'
+import { useAccountContext } from '../hooks/AccountContext'
 
 const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
 const STRIPE_BUY_BUTTON_ID = import.meta.env.VITE_STRIPE_BUY_BUTTON_ID
@@ -39,6 +40,7 @@ function useStripeBuyButtonScript() {
 export default function Upgrade() {
   const navigate = useNavigate()
   const stripeReady = useStripeBuyButtonScript()
+  const { account } = useAccountContext()
 
   return (
     <div className="screen">
@@ -84,6 +86,7 @@ export default function Upgrade() {
               <stripe-buy-button
                 buy-button-id={STRIPE_BUY_BUTTON_ID}
                 publishable-key={STRIPE_PUBLISHABLE_KEY}
+                client-reference-id={account?.email}
               />
             ) : (
               <p className="record-hint">Loading checkout…</p>

@@ -1,17 +1,29 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTasksContext } from '../hooks/TasksContext'
 import { usePremiumContext } from '../hooks/PremiumContext'
 import CategoryChip from '../components/CategoryChip'
-import { BackIcon } from '../components/icons'
+import { BackIcon, TrashIcon } from '../components/icons'
 import { remainingFreeTasks } from '../utils/plan'
 
 const CATEGORIES = ['Personal', 'Work']
+const RECURRENCE_OPTIONS = [
+  { value: 'none', label: 'One-time' },
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+]
+
+function subtaskId() {
+  return typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `subtask-${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
 
 export default function Confirm() {
   const navigate = useNavigate()
   const { tasks, draftTask, setDraftTask, addTask, clearDraft } = useTasksContext()
   const { isPremium } = usePremiumContext()
+  const [subtaskInput, setSubtaskInput] = useState('')
 
   useEffect(() => {
     if (!draftTask) navigate('/', { replace: true })
@@ -21,8 +33,20 @@ export default function Confirm() {
 
   const remaining = isPremium ? Infinity : remainingFreeTasks(tasks)
   const limitReached = remaining <= 0
+  const subtasks = draftTask.subtasks ?? []
 
   const updateDraft = (updates) => setDraftTask({ ...draftTask, ...updates })
+
+  const handleAddSubtask = () => {
+    const title = subtaskInput.trim()
+    if (!title) return
+    updateDraft({ subtasks: [...subtasks, { id: subtaskId(), title, done: false }] })
+    setSubtaskInput('')
+  }
+
+  const handleRemoveSubtask = (id) => {
+    updateDraft({ subtasks: subtasks.filter((s) => s.id !== id) })
+  }
 
   const handleSave = () => {
     if (limitReached) {
@@ -111,6 +135,60 @@ export default function Confirm() {
                 />
               ))}
             </div>
+          </div>
+
+          <div className="field">
+            <span className="field__label">Repeat</span>
+            <div className="recurrence-row">
+              {RECURRENCE_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`recurrence-chip${draftTask.recurrence === option.value || (!draftTask.recurrence && option.value === 'none') ? ' recurrence-chip--selected' : ''}`}
+                  onClick={() => updateDraft({ recurrence: option.value })}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="field">
+            <span className="field__label">Subtasks</span>
+            <div className="subtask-input-row">
+              <input
+                type="text"
+                placeholder="Add a subtask"
+                value={subtaskInput}
+                onChange={(e) => setSubtaskInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleAddSubtask()
+                  }
+                }}
+              />
+              <button type="button" className="button button--primary button--compact" onClick={handleAddSubtask}>
+                Add
+              </button>
+            </div>
+            {subtasks.length > 0 && (
+              <div className="subtask-list">
+                {subtasks.map((s) => (
+                  <div key={s.id} className="subtask-list-row">
+                    <span>{s.title}</span>
+                    <button
+                      type="button"
+                      className="subtask-list-row__remove"
+                      onClick={() => handleRemoveSubtask(s.id)}
+                      aria-label={`Remove subtask ${s.title}`}
+                    >
+                      <TrashIcon />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

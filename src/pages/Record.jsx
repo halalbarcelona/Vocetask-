@@ -4,14 +4,16 @@ import { useTasksContext } from '../hooks/TasksContext'
 import { usePremiumContext } from '../hooks/PremiumContext'
 import { BackIcon, MicIcon } from '../components/icons'
 import { parseVoiceCommand } from '../utils/voiceParser'
+import { findBestMatchingTask, parseVoiceAction } from '../utils/voiceAction'
 import { remainingFreeTasks } from '../utils/plan'
+import { tomorrowISO, todayISO } from '../utils/dateUtils'
 
 const SpeechRecognitionAPI =
   typeof window !== 'undefined' ? window.SpeechRecognition || window.webkitSpeechRecognition : undefined
 
 export default function Record() {
   const navigate = useNavigate()
-  const { tasks, setDraftTask } = useTasksContext()
+  const { tasks, setDraftTask, toggleDone, removeTask, updateTask } = useTasksContext()
   const { isPremium } = usePremiumContext()
   const outOfCredits = !isPremium && remainingFreeTasks(tasks) <= 0
 
@@ -73,6 +75,26 @@ export default function Record() {
 
   const handleDone = () => {
     recognitionRef.current?.stop()
+
+    const action = parseVoiceAction(transcript)
+    if (action.type !== 'create') {
+      const match = findBestMatchingTask(action.phrase, tasks)
+      if (match) {
+        if (action.type === 'complete') {
+          toggleDone(match.id)
+          navigate('/', { state: { toast: `Marked "${match.title}" as done` } })
+        } else if (action.type === 'delete') {
+          removeTask(match.id)
+          navigate('/', { state: { toast: `Deleted "${match.title}"`, undoTask: match } })
+        } else if (action.type === 'reschedule') {
+          const newDate = action.newDay === 'tomorrow' ? tomorrowISO() : todayISO()
+          updateTask(match.id, { date: newDate })
+          navigate('/', { state: { toast: `Moved "${match.title}" to ${action.newDay}` } })
+        }
+        return
+      }
+    }
+
     const draft = parseVoiceCommand(transcript)
     setDraftTask({ ...draft, source: 'voice' })
     navigate('/confirm')

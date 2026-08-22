@@ -4,12 +4,16 @@ import BottomTabBar from '../components/BottomTabBar'
 import { ChevronIcon } from '../components/icons'
 import { usePremiumContext } from '../hooks/PremiumContext'
 import { useAccountContext } from '../hooks/AccountContext'
+import { useTasksContext } from '../hooks/TasksContext'
+import { useNotifications } from '../hooks/useNotifications'
+import { downloadICS } from '../utils/icsExport'
 
 export default function Settings() {
   const navigate = useNavigate()
   const { isPremium } = usePremiumContext()
   const { account } = useAccountContext()
-  const [pushNotifications, setPushNotifications] = useState(true)
+  const { tasks } = useTasksContext()
+  const notifications = useNotifications(tasks)
   const [calendarSync, setCalendarSync] = useState(false)
 
   const initial = account?.name?.trim()?.[0]?.toUpperCase() || '?'
@@ -29,6 +33,8 @@ export default function Settings() {
           </div>
         </div>
 
+        <p className="trust-badge">🔒 Your tasks stay on this device — nothing is uploaded to a server.</p>
+
         <div className={`upgrade-banner${isPremium ? ' upgrade-banner--premium' : ''}`}>
           <div>
             <p className="upgrade-banner__title">{isPremium ? 'You’re on Premium' : 'You’re on Free'}</p>
@@ -47,13 +53,34 @@ export default function Settings() {
           <h2 className="section-title">Preferences</h2>
           <div className="card">
             <div className="settings-row">
-              <span>Push Notifications</span>
-              <Toggle checked={pushNotifications} onChange={setPushNotifications} label="Push Notifications" />
+              <span>
+                Push Notifications
+                {notifications.enabled && <span className="settings-row__note"> · while app is open</span>}
+              </span>
+              <Toggle
+                checked={notifications.enabled}
+                onChange={notifications.setEnabled}
+                label="Push Notifications"
+              />
             </div>
             <div className="settings-row">
               <span>Calendar Sync</span>
               <Toggle checked={calendarSync} onChange={setCalendarSync} label="Calendar Sync" />
             </div>
+          </div>
+        </section>
+
+        <section className="settings-group">
+          <h2 className="section-title">Data</h2>
+          <div className="card">
+            <button
+              type="button"
+              className="settings-row settings-row--link"
+              onClick={() => downloadICS(tasks)}
+            >
+              <span>Export to Calendar (.ics)</span>
+              <ChevronIcon />
+            </button>
           </div>
         </section>
 

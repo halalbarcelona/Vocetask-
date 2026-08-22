@@ -15,6 +15,12 @@ export function tomorrowISO() {
   return toISODate(d)
 }
 
+export function dayAfterTomorrowISO() {
+  const d = new Date()
+  d.setDate(d.getDate() + 2)
+  return toISODate(d)
+}
+
 export function isoToDate(iso) {
   const [year, month, day] = iso.split('-').map(Number)
   return new Date(year, month - 1, day)

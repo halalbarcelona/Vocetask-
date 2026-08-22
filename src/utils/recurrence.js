@@ -7,5 +7,12 @@ export function isDueOn(task, dateISO) {
   if (task.recurrence === 'weekly') {
     return isoToDate(task.date).getDay() === isoToDate(dateISO).getDay()
   }
+  if (task.recurrence === 'monthly') {
+    return isoToDate(task.date).getDate() === isoToDate(dateISO).getDate()
+  }
+  if (task.recurrence === 'custom') {
+    const days = task.recurrenceDays ?? []
+    return days.includes(isoToDate(dateISO).getDay())
+  }
   return task.date === dateISO
 }

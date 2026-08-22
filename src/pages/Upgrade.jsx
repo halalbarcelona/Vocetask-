@@ -10,10 +10,21 @@ const STRIPE_CONFIGURED = Boolean(STRIPE_PUBLISHABLE_KEY && STRIPE_BUY_BUTTON_ID
 
 const FEATURES = [
   { label: 'Tasks (voice + manual)', free: `${FREE_DAILY_TASK_LIMIT} a day`, premium: 'Unlimited' },
-  { label: 'Recurring tasks', free: '—', premium: 'Daily / Weekly' },
+  { label: 'Recurring tasks', free: '—', premium: 'Daily / Weekly / Monthly / Custom' },
   { label: 'Subtasks / checklists', free: '—', premium: 'Included' },
   { label: 'Voice actions (done, delete, reschedule)', free: '—', premium: 'Included' },
   { label: 'Calendar export (.ics)', free: '—', premium: 'Included' },
+  { label: 'Priority levels + sort', free: '—', premium: 'Included' },
+  { label: 'Custom categories', free: '—', premium: 'Unlimited' },
+  { label: 'Notes on tasks', free: '—', premium: 'Included' },
+  { label: 'Bulk select & actions', free: '—', premium: 'Included' },
+  { label: 'Snooze a task', free: '—', premium: 'Included' },
+  { label: 'Reminder lead time', free: '—', premium: 'Included' },
+  { label: 'Task templates', free: '—', premium: 'Included' },
+  { label: 'Voice search', free: '—', premium: 'Included' },
+  { label: 'Productivity report', free: '—', premium: 'Included' },
+  { label: 'Backup & restore (.json)', free: '—', premium: 'Included' },
+  { label: 'Share today’s list', free: '—', premium: 'Included' },
   { label: 'Support', free: '—', premium: 'Priority' },
 ]
 

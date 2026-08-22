@@ -1,7 +1,7 @@
 export default function CategoryChip({ category, selected, onClick }) {
   const classes = [
     'chip',
-    `chip--${category.toLowerCase()}`,
+    `chip--${category.toLowerCase().replace(/\s+/g, '-')}`,
     selected ? 'chip--selected' : '',
     onClick ? 'chip--button' : '',
   ]

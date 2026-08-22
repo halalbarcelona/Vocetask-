@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTasksContext } from '../hooks/TasksContext'
 import { usePremiumContext } from '../hooks/PremiumContext'
@@ -6,21 +6,41 @@ import { useToast } from '../hooks/useToast'
 import TaskItem from '../components/TaskItem'
 import Toast from '../components/Toast'
 import BottomTabBar from '../components/BottomTabBar'
-import { MicIcon, PlusIcon, SearchIcon, SpeakerIcon } from '../components/icons'
+import { CheckIcon, MicIcon, PlusIcon, SearchIcon, SpeakerIcon, TrashIcon } from '../components/icons'
 import { todayISO } from '../utils/dateUtils'
 import { remainingFreeTasks } from '../utils/plan'
 import { isDueOn } from '../utils/recurrence'
 import { computeStreak } from '../utils/stats'
 import { speakDailyRecap } from '../utils/speak'
 
+const PRIORITY_RANK = { high: 3, medium: 2, low: 1, none: 0 }
+
+const SpeechRecognitionAPI =
+  typeof window !== 'undefined' ? window.SpeechRecognition || window.webkitSpeechRecognition : undefined
+
 export default function Home() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { tasks, toggleDone, setDraftTask, removeTask, restoreTask, reorderTask, toggleSubtask } =
-    useTasksContext()
+  const {
+    tasks,
+    toggleDone,
+    setDraftTask,
+    removeTask,
+    restoreTask,
+    reorderTask,
+    toggleSubtask,
+    updateTask,
+    bulkRemoveTasks,
+    bulkMarkDone,
+  } = useTasksContext()
   const { isPremium } = usePremiumContext()
   const { toast, showToast, dismissToast } = useToast()
   const [query, setQuery] = useState('')
+  const [sortByPriority, setSortByPriority] = useState(false)
+  const [selectMode, setSelectMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState([])
+  const [listening, setListening] = useState(false)
+  const recognitionRef = useRef(null)
 
   useEffect(() => {
     if (location.state?.toast) {
@@ -35,9 +55,12 @@ export default function Home() {
   const today = todayISO()
   const isSearching = query.trim().length > 0
 
-  const todayTasks = tasks
-    .filter((t) => isDueOn(t, today))
-    .sort((a, b) => a.order - b.order)
+  let todayTasks = tasks.filter((t) => isDueOn(t, today)).sort((a, b) => a.order - b.order)
+  if (isPremium && sortByPriority) {
+    todayTasks = [...todayTasks].sort(
+      (a, b) => (PRIORITY_RANK[b.priority] ?? 0) - (PRIORITY_RANK[a.priority] ?? 0),
+    )
+  }
 
   const searchResults = isSearching
     ? tasks
@@ -77,13 +100,80 @@ export default function Home() {
     })
   }
 
+  const handleSnooze = (id, newDate) => updateTask(id, { date: newDate })
+
   const handleSpeakRecap = () => speakDailyRecap(todayTasks)
+
+  const handleTogglePrioritySort = () => {
+    if (!isPremium) {
+      navigate('/upgrade')
+      return
+    }
+    setSortByPriority((v) => !v)
+  }
+
+  const handleToggleSelectMode = () => {
+    if (!isPremium) {
+      navigate('/upgrade')
+      return
+    }
+    setSelectMode((v) => !v)
+    setSelectedIds([])
+  }
+
+  const handleToggleSelect = (id) => {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]))
+  }
+
+  const handleBulkComplete = () => {
+    bulkMarkDone(selectedIds)
+    setSelectedIds([])
+    setSelectMode(false)
+  }
+
+  const handleBulkDelete = () => {
+    bulkRemoveTasks(selectedIds)
+    setSelectedIds([])
+    setSelectMode(false)
+    showToast(`Deleted ${selectedIds.length} task(s)`)
+  }
+
+  const handleVoiceSearch = () => {
+    if (!isPremium || !SpeechRecognitionAPI) {
+      if (!isPremium) navigate('/upgrade')
+      return
+    }
+    if (listening) {
+      recognitionRef.current?.stop()
+      return
+    }
+    const recognition = new SpeechRecognitionAPI()
+    recognition.lang = 'en-US'
+    recognition.interimResults = false
+    recognition.onresult = (event) => {
+      const text = event.results[0]?.[0]?.transcript ?? ''
+      setQuery(text)
+    }
+    recognition.onend = () => setListening(false)
+    recognition.onerror = () => setListening(false)
+    recognitionRef.current = recognition
+    recognition.start()
+    setListening(true)
+  }
 
   return (
     <div className="screen">
       <header className="page-header">
         <h1 className="page-header__title">Aura Task</h1>
         <div className="page-header__actions">
+          <button
+            type="button"
+            className={`icon-button${selectMode ? ' icon-button--accent' : ''}`}
+            onClick={handleToggleSelectMode}
+            aria-label="Select multiple tasks"
+          >
+            <CheckIcon width={18} height={18} />
+          </button>
           <button
             type="button"
             className="icon-button"
@@ -135,10 +225,29 @@ export default function Home() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
+          <button
+            type="button"
+            className={`search-bar__mic${listening ? ' search-bar__mic--active' : ''}`}
+            onClick={handleVoiceSearch}
+            aria-label="Search by voice"
+          >
+            <MicIcon width={16} height={16} />
+          </button>
         </div>
 
         <section>
-          <h2 className="section-title">{isSearching ? 'Search Results' : 'Today'}</h2>
+          <div className="section-title-row">
+            <h2 className="section-title">{isSearching ? 'Search Results' : 'Today'}</h2>
+            {!isSearching && (
+              <button
+                type="button"
+                className={`sort-toggle${sortByPriority ? ' sort-toggle--active' : ''}`}
+                onClick={handleTogglePrioritySort}
+              >
+                Sort by priority
+              </button>
+            )}
+          </div>
 
           {visibleTasks.length === 0 ? (
             <div className="empty-state">
@@ -158,15 +267,36 @@ export default function Home() {
                   onToggle={toggleDone}
                   onDelete={handleDelete}
                   onToggleSubtask={toggleSubtask}
-                  onReorder={isSearching ? undefined : (id, dir) => reorderTask(id, dir, todayTaskIds)}
+                  onSnooze={handleSnooze}
+                  isPremium={isPremium}
+                  onReorder={
+                    isSearching || sortByPriority ? undefined : (id, dir) => reorderTask(id, dir, todayTaskIds)
+                  }
                   isFirst={!isSearching && todayTaskIds.indexOf(task.id) === 0}
                   isLast={!isSearching && todayTaskIds.indexOf(task.id) === todayTaskIds.length - 1}
+                  selectMode={selectMode}
+                  selected={selectedIds.includes(task.id)}
+                  onToggleSelect={handleToggleSelect}
                 />
               ))}
             </div>
           )}
         </section>
       </main>
+
+      {selectMode && selectedIds.length > 0 && (
+        <div className="bulk-action-bar">
+          <span className="bulk-action-bar__count">{selectedIds.length} selected</span>
+          <div className="bulk-action-bar__actions">
+            <button type="button" className="button button--primary button--compact" onClick={handleBulkComplete}>
+              <CheckIcon width={14} height={14} /> Complete
+            </button>
+            <button type="button" className="button button--danger button--compact" onClick={handleBulkDelete}>
+              <TrashIcon width={14} height={14} /> Delete
+            </button>
+          </div>
+        </div>
+      )}
 
       <Toast toast={toast} onDismiss={dismissToast} />
       <BottomTabBar />

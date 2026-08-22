@@ -1,30 +1,65 @@
 import { useState } from 'react'
 import CategoryChip from './CategoryChip'
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon, RepeatIcon, TrashIcon } from './icons'
-import { formatTimeLabel, todayISO } from '../utils/dateUtils'
+import { formatTimeLabel, todayISO, tomorrowISO } from '../utils/dateUtils'
 
-export default function TaskItem({ task, onToggle, onDelete, onReorder, isFirst, isLast, onToggleSubtask }) {
+export default function TaskItem({
+  task,
+  onToggle,
+  onDelete,
+  onReorder,
+  isFirst,
+  isLast,
+  onToggleSubtask,
+  onSnooze,
+  isPremium,
+  selectMode,
+  selected,
+  onToggleSelect,
+}) {
   const [expanded, setExpanded] = useState(false)
 
   const isRecurring = task.recurrence && task.recurrence !== 'none'
   const isDone = isRecurring ? (task.completedDates ?? []).includes(todayISO()) : task.done
   const subtasks = task.subtasks ?? []
   const doneSubtasks = subtasks.filter((s) => s.done).length
+  const hasExpandable = subtasks.length > 0 || Boolean(task.notes)
+  const priority = task.priority && task.priority !== 'none' ? task.priority : null
+
+  const handleBodyClick = () => {
+    if (selectMode) {
+      onToggleSelect?.(task.id)
+    } else if (hasExpandable) {
+      setExpanded((e) => !e)
+    }
+  }
 
   return (
     <div className={`task-card${isDone ? ' task-card--done' : ''}`}>
       <div className="task-card__row">
-        <button
-          type="button"
-          className={`task-card__checkbox${isDone ? ' task-card__checkbox--checked' : ''}`}
-          onClick={() => onToggle(task.id)}
-          aria-label={isDone ? 'Mark task as not done' : 'Mark task as done'}
-        >
-          {isDone && <CheckIcon />}
-        </button>
+        {selectMode ? (
+          <button
+            type="button"
+            className={`task-card__select-checkbox${selected ? ' task-card__select-checkbox--checked' : ''}`}
+            onClick={() => onToggleSelect?.(task.id)}
+            aria-label={selected ? 'Deselect task' : 'Select task'}
+          >
+            {selected && <CheckIcon width={12} height={12} />}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className={`task-card__checkbox${isDone ? ' task-card__checkbox--checked' : ''}`}
+            onClick={() => onToggle(task.id)}
+            aria-label={isDone ? 'Mark task as not done' : 'Mark task as done'}
+          >
+            {isDone && <CheckIcon />}
+          </button>
+        )}
 
-        <div className="task-card__body" onClick={() => subtasks.length > 0 && setExpanded((e) => !e)}>
+        <div className="task-card__body" onClick={handleBodyClick}>
           <p className="task-card__title">
+            {priority && <span className={`task-card__priority-flag task-card__priority-flag--${priority}`} />}
             <span className="task-card__title-text">{task.title || 'Untitled task'}</span>
             {isRecurring && <RepeatIcon className="task-card__repeat-icon" />}
           </p>
@@ -41,7 +76,7 @@ export default function TaskItem({ task, onToggle, onDelete, onReorder, isFirst,
 
         <CategoryChip category={task.category} />
 
-        {onReorder && (
+        {!selectMode && onReorder && (
           <div className="task-card__reorder">
             <button
               type="button"
@@ -64,7 +99,7 @@ export default function TaskItem({ task, onToggle, onDelete, onReorder, isFirst,
           </div>
         )}
 
-        {onDelete && (
+        {!selectMode && onDelete && (
           <button
             type="button"
             className="task-card__delete"
@@ -76,8 +111,28 @@ export default function TaskItem({ task, onToggle, onDelete, onReorder, isFirst,
         )}
       </div>
 
-      {expanded && subtasks.length > 0 && (
+      {!selectMode && isPremium && onSnooze && !isDone && (
+        <div className="task-card__snooze-row">
+          <button type="button" className="task-card__snooze-btn" onClick={() => onSnooze(task.id, tomorrowISO())}>
+            Snooze to tomorrow
+          </button>
+          <button
+            type="button"
+            className="task-card__snooze-btn"
+            onClick={() => {
+              const d = new Date()
+              d.setDate(d.getDate() + 7)
+              onSnooze(task.id, d.toISOString().slice(0, 10))
+            }}
+          >
+            Snooze 1 week
+          </button>
+        </div>
+      )}
+
+      {expanded && hasExpandable && (
         <div className="task-card__subtasks">
+          {task.notes && <p className="task-card__notes">{task.notes}</p>}
           {subtasks.map((subtask) => (
             <label key={subtask.id} className="subtask-row">
               <input

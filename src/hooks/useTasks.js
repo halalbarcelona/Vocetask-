@@ -42,8 +42,12 @@ export function useTasks() {
       createdAt: new Date().toISOString(),
       order: defaultOrder(task.time) + Math.random() * 0.01,
       recurrence: task.recurrence ?? 'none',
+      recurrenceDays: task.recurrenceDays ?? [],
       completedDates: [],
       subtasks: task.subtasks ?? [],
+      priority: task.priority ?? 'none',
+      notes: task.notes ?? '',
+      reminderLeadMinutes: task.reminderLeadMinutes ?? 0,
     }
     setTasks((prev) => [...prev, newTask])
     return newTask
@@ -131,6 +135,36 @@ export function useTasks() {
 
   const clearAllTasks = useCallback(() => setTasks([]), [])
 
+  // Adds tasks from a backup file, skipping any id already present so a
+  // restore can never silently overwrite or duplicate existing tasks.
+  const importTasks = useCallback((importedTasks) => {
+    setTasks((prev) => {
+      const existingIds = new Set(prev.map((t) => t.id))
+      const additions = importedTasks.filter((t) => t?.id && !existingIds.has(t.id))
+      return [...prev, ...additions]
+    })
+  }, [])
+
+  const bulkRemoveTasks = useCallback((ids) => {
+    const idSet = new Set(ids)
+    setTasks((prev) => prev.filter((t) => !idSet.has(t.id)))
+  }, [])
+
+  const bulkMarkDone = useCallback((ids) => {
+    const idSet = new Set(ids)
+    const today = new Date().toISOString().slice(0, 10)
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (!idSet.has(t.id)) return t
+        if (t.recurrence && t.recurrence !== 'none') {
+          const dates = t.completedDates ?? []
+          return dates.includes(today) ? t : { ...t, completedDates: [...dates, today] }
+        }
+        return { ...t, done: true }
+      }),
+    )
+  }, [])
+
   return {
     tasks,
     addTask,
@@ -146,5 +180,8 @@ export function useTasks() {
     setDraftTask,
     clearDraft,
     clearAllTasks,
+    importTasks,
+    bulkRemoveTasks,
+    bulkMarkDone,
   }
 }

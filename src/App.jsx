@@ -3,6 +3,7 @@ import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { TasksProvider } from './hooks/TasksContext'
 import { PremiumProvider, usePremiumContext } from './hooks/PremiumContext'
 import { AccountProvider, useAccountContext } from './hooks/AccountContext'
+import { CategoriesProvider } from './hooks/CategoriesContext'
 import Home from './pages/Home'
 import Record from './pages/Record'
 import Confirm from './pages/Confirm'
@@ -13,10 +14,18 @@ import UpgradeSuccess from './pages/UpgradeSuccess'
 import CreateAccount from './pages/CreateAccount'
 import AccountSettings from './pages/AccountSettings'
 import Privacy from './pages/Privacy'
+import Stats from './pages/Stats'
+import Templates from './pages/Templates'
 
 function RequireAccount() {
   const { hasAccount } = useAccountContext()
   if (!hasAccount) return <Navigate to="/create-account" replace />
+  return <Outlet />
+}
+
+function RequirePremium() {
+  const { isPremium } = usePremiumContext()
+  if (!isPremium) return <Navigate to="/upgrade" replace />
   return <Outlet />
 }
 
@@ -39,20 +48,26 @@ export default function App() {
       <PremiumProvider>
         <PremiumBackendSync />
         <TasksProvider>
-          <Routes>
-            <Route path="/create-account" element={<CreateAccount />} />
-            <Route element={<RequireAccount />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/record" element={<Record />} />
-              <Route path="/confirm" element={<Confirm />} />
-              <Route path="/calendar" element={<Calendar />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/account" element={<AccountSettings />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/upgrade" element={<Upgrade />} />
-              <Route path="/upgrade-success" element={<UpgradeSuccess />} />
-            </Route>
-          </Routes>
+          <CategoriesProvider>
+            <Routes>
+              <Route path="/create-account" element={<CreateAccount />} />
+              <Route element={<RequireAccount />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/record" element={<Record />} />
+                <Route path="/confirm" element={<Confirm />} />
+                <Route path="/calendar" element={<Calendar />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/account" element={<AccountSettings />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/upgrade" element={<Upgrade />} />
+                <Route path="/upgrade-success" element={<UpgradeSuccess />} />
+                <Route element={<RequirePremium />}>
+                  <Route path="/stats" element={<Stats />} />
+                  <Route path="/templates" element={<Templates />} />
+                </Route>
+              </Route>
+            </Routes>
+          </CategoriesProvider>
         </TasksProvider>
       </PremiumProvider>
     </AccountProvider>

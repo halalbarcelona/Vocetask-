@@ -43,11 +43,16 @@ export function useNotifications(tasks) {
       const [h, m] = task.time.split(':').map(Number)
       const target = new Date()
       target.setHours(h, m, 0, 0)
-      const delay = target.getTime() - now
+      const leadMs = (task.reminderLeadMinutes ?? 0) * 60 * 1000
+      const delay = target.getTime() - leadMs - now
       if (delay <= 0 || delay > 24 * 60 * 60 * 1000) continue
 
+      const body = task.reminderLeadMinutes
+        ? `${task.title || 'Task'} — in ${task.reminderLeadMinutes} min`
+        : task.title || 'You have a task due now'
+
       const timer = setTimeout(() => {
-        new Notification('Aura Task', { body: task.title || 'You have a task due now' })
+        new Notification('Aura Task', { body })
       }, delay)
       timersRef.current.push(timer)
     }

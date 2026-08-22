@@ -267,12 +267,15 @@ a {
 .chip {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   padding: 6px 12px;
   border-radius: var(--radius-full);
   font-size: 12px;
   font-weight: 600;
   border: none;
   white-space: nowrap;
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .chip--personal {
@@ -297,6 +300,97 @@ a {
 .chip-row {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
+}
+
+.chip--add {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+}
+
+/* Priority chips (Confirm) */
+.priority-chip {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  border-radius: var(--radius-full);
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.priority-chip--selected.priority-chip--low {
+  background: var(--personal-soft);
+  color: var(--personal);
+  border-color: var(--personal);
+}
+
+.priority-chip--selected.priority-chip--medium {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.priority-chip--selected.priority-chip--high {
+  background: var(--danger-soft, #fde2e1);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.priority-chip--selected.priority-chip--none {
+  background: var(--surface);
+  color: var(--text-muted);
+  border-color: var(--border);
+}
+
+.priority-chip--locked {
+  opacity: 0.55;
+}
+
+/* Weekday picker (custom recurrence, Confirm) */
+.weekday-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.weekday-chip {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.weekday-chip--selected {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Priority flag on a task card (Home) */
+.task-card__priority-flag {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.task-card__priority-flag--low {
+  background: var(--personal);
+}
+
+.task-card__priority-flag--medium {
+  background: var(--accent);
+}
+
+.task-card__priority-flag--high {
+  background: var(--danger);
 }
 
 .empty-state {
@@ -472,6 +566,11 @@ a {
 .button--ghost {
   background: transparent;
   color: var(--text-muted);
+}
+
+.button--danger {
+  background: transparent;
+  color: var(--danger);
 }
 
 .button--light {
@@ -932,6 +1031,40 @@ a {
   outline: none;
 }
 
+.search-bar__mic {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  display: flex;
+}
+
+.search-bar__mic--active {
+  color: var(--accent);
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sort-toggle {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  border-radius: var(--radius-full);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.sort-toggle--active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 /* Streak */
 .streak-banner {
   display: flex;
@@ -1007,4 +1140,161 @@ a {
   background: transparent;
   color: var(--text-muted);
   flex-shrink: 0;
+}
+
+/* Templates page */
+.template-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.template-card__name {
+  font-weight: 600;
+}
+
+.template-card__meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.template-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.template-card__remove {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+/* Stats page */
+.stat-tile-row {
+  display: flex;
+  gap: 10px;
+}
+
+.stat-tile {
+  flex: 1;
+  text-align: center;
+  padding: 16px 8px;
+}
+
+.stat-tile__value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.stat-tile__label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.stat-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.stat-bar-row__label {
+  width: 80px;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.stat-bar-row__track {
+  flex: 1;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
+  overflow: hidden;
+}
+
+.stat-bar-row__fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: var(--radius-full);
+}
+
+.stat-bar-row__count {
+  width: 28px;
+  text-align: right;
+  font-size: 13px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* Bulk-select mode (Home) */
+.task-card__select-checkbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+
+.task-card__select-checkbox--checked {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bulk-action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+.bulk-action-bar__count {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.bulk-action-bar__actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Snooze row on a task card */
+.task-card__snooze-row {
+  display: flex;
+  gap: 8px;
+  padding: 0 0 10px 40px;
+}
+
+.task-card__snooze-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  border-radius: var(--radius-full);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.task-card__notes {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0 0 8px;
+  white-space: pre-wrap;
 }

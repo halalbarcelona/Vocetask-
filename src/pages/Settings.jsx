@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BottomTabBar from '../components/BottomTabBar'
 import { ChevronIcon, LockIcon } from '../components/icons'
@@ -7,16 +7,75 @@ import { useAccountContext } from '../hooks/AccountContext'
 import { useTasksContext } from '../hooks/TasksContext'
 import { useNotifications } from '../hooks/useNotifications'
 import { downloadICS } from '../utils/icsExport'
+import { exportTasksJSON, parseBackupFile } from '../utils/backup'
+import { buildTodaySummary, shareText } from '../utils/share'
+import { isDueOn } from '../utils/recurrence'
+import { todayISO } from '../utils/dateUtils'
+
+function PremiumRow({ isPremium, label, onClick }) {
+  return (
+    <button type="button" className="settings-row settings-row--link" onClick={onClick}>
+      <span>
+        {label}
+        {!isPremium && (
+          <span className="field__label-badge">
+            <LockIcon width={12} height={12} /> Premium
+          </span>
+        )}
+      </span>
+      <ChevronIcon />
+    </button>
+  )
+}
 
 export default function Settings() {
   const navigate = useNavigate()
   const { isPremium } = usePremiumContext()
   const { account } = useAccountContext()
-  const { tasks } = useTasksContext()
+  const { tasks, importTasks } = useTasksContext()
   const notifications = useNotifications(tasks)
   const [calendarSync, setCalendarSync] = useState(false)
+  const [statusMessage, setStatusMessage] = useState('')
+  const importInputRef = useRef(null)
 
   const initial = account?.name?.trim()?.[0]?.toUpperCase() || '?'
+
+  const flashStatus = (message) => {
+    setStatusMessage(message)
+    setTimeout(() => setStatusMessage(''), 3000)
+  }
+
+  const requirePremium = (action) => {
+    if (!isPremium) {
+      navigate('/upgrade')
+      return
+    }
+    action()
+  }
+
+  const handleBackup = () => requirePremium(() => exportTasksJSON(tasks))
+
+  const handleRestoreClick = () => requirePremium(() => importInputRef.current?.click())
+
+  const handleRestoreFile = async (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    try {
+      const importedTasks = await parseBackupFile(file)
+      importTasks(importedTasks)
+      flashStatus(`Restored ${importedTasks.length} task(s)`)
+    } catch {
+      flashStatus('That file isn’t a valid Aura Task backup')
+    }
+  }
+
+  const handleShareToday = () =>
+    requirePremium(async () => {
+      const todayTasks = tasks.filter((t) => isDueOn(t, todayISO()))
+      const result = await shareText(buildTodaySummary(todayTasks))
+      if (result === 'copied') flashStatus('Copied today’s list to clipboard')
+    })
 
   return (
     <div className="screen">
@@ -71,20 +130,41 @@ export default function Settings() {
         </section>
 
         <section className="settings-group">
+          <h2 className="section-title">Insights</h2>
+          <div className="card">
+            <PremiumRow
+              isPremium={isPremium}
+              label="Productivity Report"
+              onClick={() => (isPremium ? navigate('/stats') : navigate('/upgrade'))}
+            />
+            <PremiumRow
+              isPremium={isPremium}
+              label="Task Templates"
+              onClick={() => (isPremium ? navigate('/templates') : navigate('/upgrade'))}
+            />
+          </div>
+        </section>
+
+        <section className="settings-group">
           <h2 className="section-title">Data</h2>
           <div className="card">
-            <button
-              type="button"
-              className="settings-row settings-row--link"
+            <PremiumRow
+              isPremium={isPremium}
+              label="Export to Calendar (.ics)"
               onClick={() => (isPremium ? downloadICS(tasks) : navigate('/upgrade'))}
-            >
-              <span>
-                Export to Calendar (.ics)
-                {!isPremium && <span className="field__label-badge"><LockIcon width={12} height={12} /> Premium</span>}
-              </span>
-              <ChevronIcon />
-            </button>
+            />
+            <PremiumRow isPremium={isPremium} label="Backup Tasks (.json)" onClick={handleBackup} />
+            <PremiumRow isPremium={isPremium} label="Restore from Backup" onClick={handleRestoreClick} />
+            <PremiumRow isPremium={isPremium} label="Share Today’s List" onClick={handleShareToday} />
+            <input
+              ref={importInputRef}
+              type="file"
+              accept="application/json"
+              style={{ display: 'none' }}
+              onChange={handleRestoreFile}
+            />
           </div>
+          {statusMessage && <p className="settings-row__note" style={{ marginTop: 6 }}>{statusMessage}</p>}
         </section>
 
         <section className="settings-group">

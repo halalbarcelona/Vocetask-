@@ -14,6 +14,8 @@
 // tempting — a wrong "fix" is worse than the original mis-hearing, because the
 // user can at least see and edit the original.
 
+import { similarity } from './hinglish'
+
 // English number words, needed because the engine writes "nine" where the
 // Hindi parser expects a numeral. Only ever applied next to a clock word.
 const ENGLISH_NUMBERS = {
@@ -87,6 +89,105 @@ const NUMBER_WORD_RE = new RegExp(`\\b(${NUMBER_WORD})\\b(?=\\s*(?:baje|बज�
 // English preposition in it and would otherwise leave "at" stranded in the title.
 const OCLOCK_RE = /\b(?:at\s+)?(\d{1,2})\s*o'?\s?clock\b/gi
 
+// --- fuzzy repair -----------------------------------------------------------
+//
+// The rules above each name one specific mis-hearing, which means they only
+// ever fix mis-hearings someone thought of in advance. The larger class is
+// romanisation drift — the engine hears the right word and spells it a way
+// nobody listed: bajje, baaje, bajey, bhaje, sabah, savera. Those are all one
+// or two edits from the real word once the spelling noise is folded out, so
+// they can be repaired generically.
+//
+// This runs only in the two slots where a Hindi time word is expected and an
+// English word almost never appears: directly after a number, and directly
+// before or after a clock expression. Everywhere else the transcript is left
+// exactly as heard.
+
+// Folds the ways the same Hindi sound gets romanised into one form, so an edit
+// distance is measuring the word rather than the spelling.
+function fold(word) {
+  return word
+    .toLowerCase()
+    .replace(/[^a-z]/g, '')
+    .replace(/y$/, 'e')
+    .replace(/aa+/g, 'a')
+    .replace(/ee+/g, 'i')
+    .replace(/oo+/g, 'u')
+    .replace(/v/g, 'w')
+    .replace(/z/g, 'j')
+    .replace(/bh/g, 'b')
+    .replace(/dh/g, 'd')
+    .replace(/gh/g, 'g')
+    .replace(/(.)\1+/g, '$1')
+}
+
+const CLOCK_TARGETS = ['baje']
+const PERIOD_TARGETS = ['subah', 'shaam', 'raat', 'dopahar', 'savere']
+const DAY_TARGETS = ['kal', 'aaj', 'parso', 'narso']
+
+// Words the engine legitimately produces next to a number in English. Snapping
+// any of these would turn a correct transcript into a wrong one, so they are
+// never candidates however close they happen to score.
+const NEVER_SNAP = new Set([
+  'am', 'pm', 'oclock', 'people', 'percent', 'rupees', 'minutes', 'minute', 'mins', 'min',
+  'hours', 'hour', 'days', 'day', 'weeks', 'week', 'months', 'month', 'years', 'year',
+  'times', 'time', 'tasks', 'task', 'items', 'item', 'pages', 'page', 'km', 'kg', 'ml',
+  'lakh', 'crore', 'thousand', 'hundred', 'and', 'to', 'the', 'a', 'of', 'or', 'is', 'in',
+  'budget', 'call', 'rose', 'roses', 'phone', 'same', 'shame', 'night', 'morning', 'evening',
+])
+
+const SNAP_THRESHOLD = 0.72
+
+// Returns the vocabulary word this token was probably meant to be, or null.
+function snap(token, targets) {
+  const bare = token.toLowerCase().replace(/[^a-z]/g, '')
+  if (!bare || NEVER_SNAP.has(bare)) return null
+  if (targets.includes(bare)) return null
+
+  const folded = fold(bare)
+  if (folded.length < 3) return null
+
+  let best = null
+  let bestScore = SNAP_THRESHOLD
+  for (const target of targets) {
+    const score = similarity(folded, fold(target))
+    if (score > bestScore) {
+      bestScore = score
+      best = target
+    }
+  }
+  return best
+}
+
+function fuzzyRepair(text) {
+  let out = text
+
+  // <number> <token>  ->  <number> baje
+  out = out.replace(/(\b\d{1,2}\s+)([a-z]+)\b/gi, (whole, num, word) => {
+    const fixed = snap(word, CLOCK_TARGETS)
+    return fixed ? `${num}${fixed}` : whole
+  })
+
+  // <token> <number> baje   and   <number> baje <token>  -> period of day
+  out = out.replace(/\b([a-z]+)(\s+\d{1,2}\s+baje)\b/gi, (whole, word, rest) => {
+    const fixed = snap(word, PERIOD_TARGETS)
+    return fixed ? `${fixed}${rest}` : whole
+  })
+  out = out.replace(/\b(\d{1,2}\s+baje\s+)([a-z]+)\b/gi, (whole, rest, word) => {
+    const fixed = snap(word, PERIOD_TARGETS)
+    return fixed ? `${rest}${fixed}` : whole
+  })
+
+  // <token> <period>  -> day word ("sabah" already repaired above, so a word
+  // sitting in front of one is where kal/parso/aaj live)
+  out = out.replace(new RegExp(`\\b([a-z]+)(\\s+(?:${PERIOD_TARGETS.join('|')})\\b)`, 'gi'), (whole, word, rest) => {
+    const fixed = snap(word, DAY_TARGETS)
+    return fixed ? `${fixed}${rest}` : whole
+  })
+
+  return out
+}
+
 /**
  * Rewrites a raw speech transcript into the form the parser expects.
  * Safe to call on text that needs no correction — it returns it unchanged.
@@ -100,6 +201,7 @@ export function fixSpeech(rawTranscript) {
   }
   text = text.replace(NUMBER_WORD_RE, (_m, word) => String(ENGLISH_NUMBERS[word.toLowerCase()]))
   text = text.replace(OCLOCK_RE, '$1 baje')
+  text = fuzzyRepair(text)
 
   return text.replace(/\s+/g, ' ').trim()
 }

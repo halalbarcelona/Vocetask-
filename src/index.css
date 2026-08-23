@@ -2000,3 +2000,19 @@ a {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.72; }
 }
+
+/* Shown when a transcript produced no usable structure — most often the wrong
+   language model rather than a bad phrasing. */
+.retry-nudge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  border: 1px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: var(--radius-full);
+  padding: var(--s2) var(--s4);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-align: center;
+}

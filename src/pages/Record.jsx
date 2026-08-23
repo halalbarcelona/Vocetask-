@@ -232,6 +232,12 @@ export default function Record() {
 
   const toggleListening = () => (isListening ? stopListening() : startListening())
 
+  // If nothing structural came out of what was heard — no time, no date, the
+  // whole utterance sitting in the title — the most likely cause is the wrong
+  // language model, not a bad phrasing. Say so at the moment it happens rather
+  // than leaving a quiet link the user has no reason to notice.
+  const looksMisheard = transcript.trim().length > 0 && parseConfidence(fixSpeech(transcript)) < 1
+
   // Retrying in the other model is the fastest fix for a bad transcript, so it
   // is one tap: switch the language and immediately listen again.
   const retryInOtherLang = () => {
@@ -344,9 +350,15 @@ export default function Record() {
         />
 
         {supportsSpeech && transcript.trim() && (
-          <button type="button" className="link-button" onClick={retryInOtherLang}>
-            <MicIcon width={13} height={13} /> Came out wrong? Say it again in{' '}
-            {otherLang(lang) === 'hi-IN' ? 'हिंदी' : 'Hinglish'}
+          <button
+            type="button"
+            className={looksMisheard ? 'retry-nudge' : 'link-button'}
+            onClick={retryInOtherLang}
+          >
+            <MicIcon width={13} height={13} />
+            {looksMisheard
+              ? `Not what you said? Say it again in ${otherLang(lang) === 'hi-IN' ? 'हिंदी' : 'Hinglish'}`
+              : `Came out wrong? Say it again in ${otherLang(lang) === 'hi-IN' ? 'हिंदी' : 'Hinglish'}`}
           </button>
         )}
 

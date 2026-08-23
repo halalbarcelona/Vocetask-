@@ -32,6 +32,15 @@ export default defineConfig({
             icons: [{ src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
           },
         ],
+        share_target: {
+          action: '/Vocetask-/share-target',
+          method: 'GET',
+          params: {
+            title: 'title',
+            text: 'text',
+            url: 'url',
+          },
+        },
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,ico}'],

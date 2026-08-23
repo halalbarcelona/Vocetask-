@@ -16,7 +16,7 @@ import {
   SpeakerIcon,
   TrashIcon,
 } from '../components/icons'
-import { todayISO } from '../utils/dateUtils'
+import { formatDateLabel, formatTimeLabel, todayISO } from '../utils/dateUtils'
 import { isDueOn, isOverdue } from '../utils/recurrence'
 import { computeStreak } from '../utils/stats'
 import { speakDailyRecap } from '../utils/speak'
@@ -25,9 +25,12 @@ import { fixSpeech } from '../utils/speechFix'
 import { useVoiceLang } from '../hooks/useVoiceLang'
 import { useLabelsContext } from '../hooks/LabelsContext'
 import { useFiltersContext } from '../hooks/FiltersContext'
+import { useCategoriesContext } from '../hooks/CategoriesContext'
 import LabelChip from '../components/LabelChip'
 import { FilterIcon } from '../components/icons'
 import { matchesFilter } from '../utils/filters'
+import { parseQuickAddSyntax } from '../utils/quickAddSyntax'
+import { parseVoiceCommand } from '../utils/voiceParser'
 
 const PRIORITY_RANK = { high: 3, medium: 2, low: 1, none: 0 }
 
@@ -61,8 +64,9 @@ export default function Home() {
   } = useTasksContext()
   const { isPremium, isPaid, trialActive, trialExpired, trialDaysLeft } = usePremiumContext()
   const { lang: voiceLang } = useVoiceLang()
-  const { colorFor } = useLabelsContext()
+  const { labels, colorFor } = useLabelsContext()
   const { filters } = useFiltersContext()
+  const { categories } = useCategoriesContext()
   const { toast, showToast, dismissToast } = useToast()
   const [query, setQuery] = useState('')
   const [sortByPriority, setSortByPriority] = useState(false)
@@ -208,11 +212,32 @@ export default function Home() {
 
   const handleSnooze = (id, newDate) => updateTask(id, { date: newDate })
 
+  // Typed entries get the same Hinglish date/time/recurrence/priority parsing
+  // voice input already gets, plus Todoist-style #list @label !priority
+  // shorthand — stripped from the text before the NLP parser ever sees it, so
+  // "call mummy #Work !high kal 9pm" ends up with none of those tokens left
+  // sitting in the title. A task that lands anywhere but today's list would
+  // otherwise just vanish from view with no explanation, so say where it went.
   const handleQuickAdd = () => {
-    const title = quickAdd.trim()
-    if (!title) return
-    addTask({ title, date: today, time: '', category: 'Personal' })
+    const raw = quickAdd.trim()
+    if (!raw) return
+    const syntax = parseQuickAddSyntax(raw, { categories, labels: labels.map((l) => l.name) })
+    const parsed = parseVoiceCommand(syntax.title || raw)
+    addTask({
+      title: parsed.title || syntax.title || raw,
+      date: parsed.date,
+      time: parsed.time,
+      category: syntax.category ?? parsed.category,
+      recurrence: parsed.recurrence,
+      recurrenceDays: parsed.recurrenceDays,
+      priority: syntax.priority ?? (parsed.priority !== 'none' ? parsed.priority : 'none'),
+      labels: syntax.labels,
+    })
     setQuickAdd('')
+    if (parsed.date !== today) {
+      const when = parsed.time ? `${formatDateLabel(parsed.date)}, ${formatTimeLabel(parsed.time)}` : formatDateLabel(parsed.date)
+      showToast(`Added for ${when}`)
+    }
   }
 
   // Reopens an existing task in the Confirm screen. The id riding along in
@@ -392,7 +417,7 @@ export default function Home() {
                 <PlusIcon width={16} height={16} />
                 <input
                   type="text"
-                  placeholder="Quick add a task for today…"
+                  placeholder="Quick add — try “kal 5pm #Work !high call mummy”"
                   value={quickAdd}
                   onChange={(e) => setQuickAdd(e.target.value)}
                   onKeyDown={(e) => {

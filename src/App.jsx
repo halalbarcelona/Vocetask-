@@ -21,6 +21,7 @@ import Templates from './pages/Templates'
 import TrialEnded from './pages/TrialEnded'
 import VoiceTest from './pages/VoiceTest'
 import Filters from './pages/Filters'
+import ShareTarget from './pages/ShareTarget'
 
 function RequireAccount() {
   const { hasAccount } = useAccountContext()
@@ -67,6 +68,7 @@ export default function App() {
                     <Route path="/trial-ended" element={<TrialEnded />} />
                     <Route path="/voice-test" element={<VoiceTest />} />
                     <Route path="/filters" element={<Filters />} />
+                    <Route path="/share-target" element={<ShareTarget />} />
                   </Route>
                 </Routes>
               </FiltersProvider>

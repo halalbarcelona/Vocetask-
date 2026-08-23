@@ -2,10 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTasksContext } from '../hooks/TasksContext'
 import { usePremiumContext } from '../hooks/PremiumContext'
+import { useCategoriesContext } from '../hooks/CategoriesContext'
+import { useLabelsContext } from '../hooks/LabelsContext'
 import { BackIcon, MicIcon } from '../components/icons'
 import { parseConfidence, parseVoiceCommand } from '../utils/voiceParser'
 import { findBestMatchingTask, parseVoiceAction } from '../utils/voiceAction'
 import { fixSpeech } from '../utils/speechFix'
+import { parseQuickAddSyntax } from '../utils/quickAddSyntax'
 import { otherLang, useVoiceLang, VOICE_LANGS } from '../hooks/useVoiceLang'
 
 // Speech engines rank alternatives by acoustic confidence, which handles
@@ -52,6 +55,8 @@ export default function Record() {
   const navigate = useNavigate()
   const { tasks, setDraftTask, toggleDone, removeTask, updateTask } = useTasksContext()
   const { isPremium } = usePremiumContext()
+  const { categories } = useCategoriesContext()
+  const { labels } = useLabelsContext()
 
   const location = useLocation()
   // Tapping an example on Home's empty state lands here with the phrase
@@ -280,8 +285,18 @@ export default function Record() {
       }
     }
 
-    const draft = parseVoiceCommand(spoken)
-    setDraftTask({ ...draft, source: 'voice' })
+    // Typed or dictated text can also carry Todoist-style #list @label
+    // !priority shorthand — stripped before the Hinglish parser sees it, so
+    // those tokens never end up sitting in the title.
+    const syntax = parseQuickAddSyntax(spoken, { categories, labels: labels.map((l) => l.name) })
+    const draft = parseVoiceCommand(syntax.title || spoken)
+    setDraftTask({
+      ...draft,
+      category: syntax.category ?? draft.category,
+      priority: syntax.priority ?? draft.priority,
+      labels: syntax.labels,
+      source: 'voice',
+    })
     navigate('/confirm')
   }
 

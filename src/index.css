@@ -9,6 +9,7 @@
   --text-faint: #9a9aa6;
   --border: #e8e6e1;
   --border-strong: #d6d3cc;
+  --track: #efedea;
   --danger: #c8372b;
   --work: #b4530f;
   --work-soft: #fbeee1;
@@ -38,6 +39,12 @@
   /* Left indent that lines a task's secondary rows (notes, subtasks, snooze)
      up under its title: 22px checkbox + var(--s3) gap. */
   --row-indent: 34px;
+  /* Height of the bottom tab bar without the safe-area inset, which the bar
+     adds to its own padding. Everything that floats above the bar — the FAB,
+     the toast, the bulk-action bar, the screen's bottom padding — is measured
+     from this so they can never drift apart. */
+  --tab-bar-h: 75px;
+  --fab-size: 56px;
   /* Type scale — six steps, nothing between them. Keeps the hierarchy
      readable instead of drifting through a dozen near-identical sizes. */
   --t-xs: 11px;
@@ -69,6 +76,7 @@
     --text-faint: #6e6b76;
     --border: #2b2930;
     --border-strong: #3a3841;
+    --track: #26252c;
     --danger: #f0796b;
     --danger-soft: #3a201d;
     --work: #e0995c;
@@ -96,6 +104,7 @@
   --text-faint: #6e6b76;
   --border: #2b2930;
   --border-strong: #3a3841;
+  --track: #26252c;
   --danger: #f0796b;
   --danger-soft: #3a201d;
   --work: #e0995c;
@@ -168,7 +177,7 @@ a {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding-bottom: 148px;
+  padding-bottom: calc(var(--tab-bar-h) + var(--fab-size) + var(--s5));
 }
 
 .screen__content {
@@ -869,7 +878,7 @@ a {
    "Month" was pulling more attention than the calendar it labels. */
 .segmented {
   display: flex;
-  background: var(--accent-soft);
+  background: var(--track);
   border-radius: var(--radius-full);
   padding: var(--s1);
   margin: 0 var(--s5) var(--s4);
@@ -1217,9 +1226,9 @@ a {
 .toast {
   position: fixed;
   left: 50%;
-  bottom: 96px;
+  bottom: calc(var(--tab-bar-h) + var(--fab-size) + var(--s5) + env(safe-area-inset-bottom));
   transform: translateX(-50%);
-  width: calc(100% - 40px);
+  width: calc(100% - 2 * var(--s5));
   max-width: 440px;
   display: flex;
   align-items: center;
@@ -1502,9 +1511,12 @@ a {
 
 .bulk-action-bar {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  bottom: calc(var(--tab-bar-h) + env(safe-area-inset-bottom));
+  z-index: 45;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1565,7 +1577,7 @@ a {
   flex: 1;
   height: 6px;
   border-radius: var(--radius-full);
-  background: var(--border);
+  background: var(--track);
   overflow: hidden;
 }
 
@@ -1646,14 +1658,19 @@ a {
   width: 100%;
 }
 
+.example-chip svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
 .example-chip {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--s2);
-  border: 1px dashed var(--border);
+  border: 1px dashed var(--border-strong);
   background: var(--surface);
-  color: var(--accent);
+  color: var(--text-muted);
   border-radius: var(--radius-full);
   padding: var(--s2) var(--s4);
   font-size: var(--t-sm);
@@ -1852,9 +1869,9 @@ a {
 .fab {
   position: fixed;
   right: max(var(--s4), calc(50% - 240px + var(--s4)));
-  bottom: calc(78px + env(safe-area-inset-bottom));
-  width: 56px;
-  height: 56px;
+  bottom: calc(var(--tab-bar-h) + var(--s3) + env(safe-area-inset-bottom));
+  width: var(--fab-size);
+  height: var(--fab-size);
   border-radius: var(--radius-full);
   border: none;
   background: var(--accent);

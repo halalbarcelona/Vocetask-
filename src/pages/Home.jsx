@@ -397,13 +397,15 @@ export default function Home() {
             <section>
               <div className="section-title-row">
                 <h2 className="section-title">Today</h2>
-                <button
-                  type="button"
-                  className={`sort-toggle${sortByPriority ? ' sort-toggle--active' : ''}`}
-                  onClick={handleTogglePrioritySort}
-                >
-                  Sort by priority
-                </button>
+                {todayTasks.length > 1 && (
+                  <button
+                    type="button"
+                    className={`sort-toggle${sortByPriority ? ' sort-toggle--active' : ''}`}
+                    onClick={handleTogglePrioritySort}
+                  >
+                    Sort by priority
+                  </button>
+                )}
               </div>
 
               {todayTasks.length > 0 && (
@@ -422,10 +424,8 @@ export default function Home() {
 
               {todayTasks.length === 0 ? (
                 <div className="empty-state">
-                  <p>No tasks for today yet.</p>
-                  <p className="empty-state__hint">
-                    Try saying one out loud:
-                  </p>
+                  <p>Nothing for today yet.</p>
+                  <p className="empty-state__hint">Tap the mic and say it — like this:</p>
                   <div className="example-list">
                     {VOICE_EXAMPLES.map((example) => (
                       <button
@@ -503,9 +503,11 @@ export default function Home() {
       )}
 
       <Toast toast={toast} onDismiss={dismissToast} />
-      <button type="button" className="fab" onClick={handleMicTap} aria-label="Add a task with your voice">
-        <MicIcon width={26} height={26} />
-      </button>
+      {!selectMode && (
+        <button type="button" className="fab" onClick={handleMicTap} aria-label="Add a task with your voice">
+          <MicIcon width={26} height={26} />
+        </button>
+      )}
 
       <BottomTabBar />
     </div>

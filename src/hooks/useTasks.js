@@ -3,10 +3,37 @@ import { todayISO } from '../utils/dateUtils'
 
 const STORAGE_KEY = 'aura-tasks'
 
+// Fills in every field a task is expected to have. Data can arrive from an
+// older build, a hand-edited backup, or a restore of a file we didn't write —
+// and a single missing `category` used to crash the whole app, since
+// CategoryChip calls .toLowerCase() on it.
+function normalizeTask(task) {
+  if (!task || typeof task !== 'object') return null
+  return {
+    id: task.id ?? generateId(),
+    title: typeof task.title === 'string' ? task.title : '',
+    date: typeof task.date === 'string' ? task.date : '',
+    time: typeof task.time === 'string' ? task.time : '',
+    category: typeof task.category === 'string' && task.category ? task.category : 'Personal',
+    done: Boolean(task.done),
+    createdAt: task.createdAt ?? new Date().toISOString(),
+    order: Number.isFinite(task.order) ? task.order : 24 * 60,
+    recurrence: task.recurrence ?? 'none',
+    recurrenceDays: Array.isArray(task.recurrenceDays) ? task.recurrenceDays : [],
+    completedDates: Array.isArray(task.completedDates) ? task.completedDates : [],
+    subtasks: Array.isArray(task.subtasks) ? task.subtasks.filter(Boolean) : [],
+    priority: task.priority ?? 'none',
+    notes: typeof task.notes === 'string' ? task.notes : '',
+    reminderLeadMinutes: Number.isFinite(task.reminderLeadMinutes) ? task.reminderLeadMinutes : 0,
+  }
+}
+
 function loadTasks() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
+    const parsed = raw ? JSON.parse(raw) : []
+    if (!Array.isArray(parsed)) return []
+    return parsed.map(normalizeTask).filter(Boolean)
   } catch {
     return []
   }
@@ -141,7 +168,9 @@ export function useTasks() {
   const importTasks = useCallback((importedTasks) => {
     setTasks((prev) => {
       const existingIds = new Set(prev.map((t) => t.id))
-      const additions = importedTasks.filter((t) => t?.id && !existingIds.has(t.id))
+      const additions = importedTasks
+        .map(normalizeTask)
+        .filter((t) => t && !existingIds.has(t.id))
       return [...prev, ...additions]
     })
   }, [])

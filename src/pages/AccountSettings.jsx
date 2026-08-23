@@ -9,7 +9,7 @@ export default function AccountSettings() {
   const navigate = useNavigate()
   const { account, updateAccount, logOut } = useAccountContext()
   const { clearAllTasks } = useTasksContext()
-  const { deactivatePremium } = usePremiumContext()
+  const { deactivatePremium, isPaid } = usePremiumContext()
 
   const [name, setName] = useState(account?.name ?? '')
   const [email, setEmail] = useState(account?.email ?? '')
@@ -17,7 +17,24 @@ export default function AccountSettings() {
 
   const handleSave = (e) => {
     e.preventDefault()
-    updateAccount({ name: name.trim(), email: email.trim() })
+    const nextEmail = email.trim()
+
+    // Premium is keyed to the account email all the way through Stripe and
+    // the backend, so silently changing it strands a purchase under the old
+    // address with no way to recover it on another device.
+    if (isPaid && nextEmail !== account?.email) {
+      const ok = window.confirm(
+        `Your Premium purchase is linked to ${account?.email}.\n\n` +
+          `Changing your email to ${nextEmail} will unlink it, and you may lose Premium ` +
+          `when you sign in on another device.\n\nChange it anyway?`,
+      )
+      if (!ok) {
+        setEmail(account?.email ?? '')
+        return
+      }
+    }
+
+    updateAccount({ name: name.trim(), email: nextEmail })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }

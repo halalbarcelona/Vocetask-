@@ -4,6 +4,8 @@ import { TasksProvider } from './hooks/TasksContext'
 import { PremiumProvider, usePremiumContext } from './hooks/PremiumContext'
 import { AccountProvider, useAccountContext } from './hooks/AccountContext'
 import { CategoriesProvider } from './hooks/CategoriesContext'
+import { LabelsProvider } from './hooks/LabelsContext'
+import { FiltersProvider } from './hooks/FiltersContext'
 import Home from './pages/Home'
 import Record from './pages/Record'
 import Confirm from './pages/Confirm'
@@ -18,6 +20,7 @@ import Stats from './pages/Stats'
 import Templates from './pages/Templates'
 import TrialEnded from './pages/TrialEnded'
 import VoiceTest from './pages/VoiceTest'
+import Filters from './pages/Filters'
 
 function RequireAccount() {
   const { hasAccount } = useAccountContext()
@@ -45,24 +48,29 @@ export default function App() {
         <PremiumBackendSync />
         <TasksProvider>
           <CategoriesProvider>
-            <Routes>
-              <Route path="/create-account" element={<CreateAccount />} />
-              <Route element={<RequireAccount />}>
-                <Route path="/" element={<Home />} />
-                <Route path="/record" element={<Record />} />
-                <Route path="/confirm" element={<Confirm />} />
-                <Route path="/calendar" element={<Calendar />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/account" element={<AccountSettings />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/upgrade" element={<Upgrade />} />
-                <Route path="/upgrade-success" element={<UpgradeSuccess />} />
-                <Route path="/stats" element={<Stats />} />
-                <Route path="/templates" element={<Templates />} />
-                <Route path="/trial-ended" element={<TrialEnded />} />
-                <Route path="/voice-test" element={<VoiceTest />} />
-              </Route>
-            </Routes>
+            <LabelsProvider>
+              <FiltersProvider>
+                <Routes>
+                  <Route path="/create-account" element={<CreateAccount />} />
+                  <Route element={<RequireAccount />}>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/record" element={<Record />} />
+                    <Route path="/confirm" element={<Confirm />} />
+                    <Route path="/calendar" element={<Calendar />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/account" element={<AccountSettings />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/upgrade" element={<Upgrade />} />
+                    <Route path="/upgrade-success" element={<UpgradeSuccess />} />
+                    <Route path="/stats" element={<Stats />} />
+                    <Route path="/templates" element={<Templates />} />
+                    <Route path="/trial-ended" element={<TrialEnded />} />
+                    <Route path="/voice-test" element={<VoiceTest />} />
+                    <Route path="/filters" element={<Filters />} />
+                  </Route>
+                </Routes>
+              </FiltersProvider>
+            </LabelsProvider>
           </CategoriesProvider>
         </TasksProvider>
       </PremiumProvider>

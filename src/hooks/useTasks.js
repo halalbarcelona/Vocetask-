@@ -25,6 +25,11 @@ function normalizeTask(task) {
     priority: task.priority ?? 'none',
     notes: typeof task.notes === 'string' ? task.notes : '',
     reminderLeadMinutes: Number.isFinite(task.reminderLeadMinutes) ? task.reminderLeadMinutes : 0,
+    labels: Array.isArray(task.labels) ? task.labels.filter((l) => typeof l === 'string' && l) : [],
+    // Groups a task within its own list (e.g. "Work" / "Doing"), the way
+    // Todoist sections group tasks within a project. Empty means ungrouped.
+    section: typeof task.section === 'string' ? task.section : '',
+    durationMinutes: Number.isFinite(task.durationMinutes) ? task.durationMinutes : 0,
   }
 }
 
@@ -76,6 +81,9 @@ export function useTasks() {
       priority: task.priority ?? 'none',
       notes: task.notes ?? '',
       reminderLeadMinutes: task.reminderLeadMinutes ?? 0,
+      labels: task.labels ?? [],
+      section: task.section ?? '',
+      durationMinutes: task.durationMinutes ?? 0,
     }
     setTasks((prev) => [...prev, newTask])
     return newTask

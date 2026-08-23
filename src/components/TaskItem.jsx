@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import CategoryChip from './CategoryChip'
+import LabelChip from './LabelChip'
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon, PencilIcon, RepeatIcon, TrashIcon } from './icons'
 import { formatTimeLabel, todayISO, tomorrowISO } from '../utils/dateUtils'
+import { useLabelsContext } from '../hooks/LabelsContext'
 
 export default function TaskItem({
   task,
@@ -19,11 +21,13 @@ export default function TaskItem({
   onToggleSelect,
 }) {
   const [expanded, setExpanded] = useState(false)
+  const { colorFor } = useLabelsContext()
 
   const isRecurring = task.recurrence && task.recurrence !== 'none'
   const isDone = isRecurring ? (task.completedDates ?? []).includes(todayISO()) : task.done
   const subtasks = task.subtasks ?? []
   const doneSubtasks = subtasks.filter((s) => s.done).length
+  const labels = task.labels ?? []
   const hasExpandable = subtasks.length > 0 || Boolean(task.notes)
   const priority = task.priority && task.priority !== 'none' ? task.priority : null
 
@@ -69,6 +73,10 @@ export default function TaskItem({
             {task.time && <span className="task-card__meta-item">{formatTimeLabel(task.time)}</span>}
             {task.time && <span className="task-card__meta-dot">·</span>}
             <CategoryChip category={task.category} />
+            {labels.length > 0 && <span className="task-card__meta-dot">·</span>}
+            {labels.slice(0, 3).map((name) => (
+              <LabelChip key={name} name={name} color={colorFor(name)} />
+            ))}
             {subtasks.length > 0 && <span className="task-card__meta-dot">·</span>}
             {subtasks.length > 0 && (
               <span className="task-card__meta-item">

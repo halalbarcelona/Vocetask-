@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTasksContext } from '../hooks/TasksContext'
 import { usePremiumContext } from '../hooks/PremiumContext'
 import { useCategoriesContext } from '../hooks/CategoriesContext'
+import { useLabelsContext } from '../hooks/LabelsContext'
 import { useTemplates } from '../hooks/useTemplates'
 import CategoryChip from '../components/CategoryChip'
+import LabelChip from '../components/LabelChip'
 import { BackIcon, LockIcon, PlusIcon, TrashIcon } from '../components/icons'
 
 const RECURRENCE_OPTIONS = [
@@ -61,12 +63,14 @@ function PremiumLabel({ isPremium, children }) {
 
 export default function Confirm() {
   const navigate = useNavigate()
-  const { draftTask, setDraftTask, addTask, updateTask, clearDraft } = useTasksContext()
+  const { tasks, draftTask, setDraftTask, addTask, updateTask, clearDraft } = useTasksContext()
   const { isPremium } = usePremiumContext()
   const { categories, addCategory } = useCategoriesContext()
+  const { labels, addLabel } = useLabelsContext()
   const { saveTemplate } = useTemplates()
   const [subtaskInput, setSubtaskInput] = useState('')
   const [templateSaved, setTemplateSaved] = useState(false)
+  const [newLabelInput, setNewLabelInput] = useState('')
 
   useEffect(() => {
     if (!draftTask) navigate('/', { replace: true })
@@ -87,6 +91,29 @@ export default function Confirm() {
       return
     }
     action()
+  }
+
+  // Sections aren't a separate registry — they're read off whatever's already
+  // in use within this list, so an empty list has none to suggest and a
+  // section nobody uses anymore quietly stops being offered.
+  const sectionSuggestions = useMemo(() => {
+    const inSameCategory = tasks.filter((t) => t.category === draftTask.category && t.section)
+    return [...new Set(inSameCategory.map((t) => t.section))]
+  }, [tasks, draftTask.category])
+
+  const draftLabels = draftTask.labels ?? []
+
+  const handleToggleLabel = (name) => {
+    updateDraft({ labels: draftLabels.includes(name) ? draftLabels.filter((l) => l !== name) : [...draftLabels, name] })
+  }
+
+  const handleAddLabel = () => {
+    requirePremium(() => {
+      const name = addLabel(newLabelInput)
+      if (!name) return
+      updateDraft({ labels: draftLabels.includes(name) ? draftLabels : [...draftLabels, name] })
+      setNewLabelInput('')
+    })
   }
 
   const handleAddSubtask = () => {
@@ -224,6 +251,58 @@ export default function Confirm() {
               ))}
               <button type="button" className="chip chip--button chip--add" onClick={handleAddCategory}>
                 {isPremium ? <PlusIcon width={14} height={14} /> : <LockIcon width={14} height={14} />} New
+              </button>
+            </div>
+          </div>
+
+          <label className="field">
+            <span className="field__label">Section</span>
+            <input
+              type="text"
+              className="field__input"
+              list="section-suggestions"
+              placeholder="e.g. Doing, Blocked — leave blank for none"
+              value={draftTask.section ?? ''}
+              onChange={(e) => updateDraft({ section: e.target.value })}
+            />
+            <datalist id="section-suggestions">
+              {sectionSuggestions.map((s) => (
+                <option key={s} value={s} />
+              ))}
+            </datalist>
+          </label>
+
+          <div className="field">
+            <span className="field__label">Labels</span>
+            <div className="chip-row">
+              {labels.map((label) => (
+                <LabelChip
+                  key={label.name}
+                  name={label.name}
+                  color={label.color}
+                  selected={draftLabels.includes(label.name)}
+                  onClick={() => handleToggleLabel(label.name)}
+                />
+              ))}
+            </div>
+            <div className="label-add-row">
+              <input
+                type="text"
+                className="field__input"
+                placeholder={isPremium ? 'New label' : 'Upgrade to create labels'}
+                value={newLabelInput}
+                readOnly={!isPremium}
+                onClick={() => !isPremium && navigate('/upgrade')}
+                onChange={(e) => setNewLabelInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleAddLabel()
+                  }
+                }}
+              />
+              <button type="button" className="button button--light button--compact" onClick={handleAddLabel}>
+                {isPremium ? <PlusIcon width={14} height={14} /> : <LockIcon width={14} height={14} />}
               </button>
             </div>
           </div>

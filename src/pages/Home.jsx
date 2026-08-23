@@ -23,6 +23,11 @@ import { speakDailyRecap } from '../utils/speak'
 import { checkMilestone } from '../utils/milestones'
 import { fixSpeech } from '../utils/speechFix'
 import { useVoiceLang } from '../hooks/useVoiceLang'
+import { useLabelsContext } from '../hooks/LabelsContext'
+import { useFiltersContext } from '../hooks/FiltersContext'
+import LabelChip from '../components/LabelChip'
+import { FilterIcon } from '../components/icons'
+import { matchesFilter } from '../utils/filters'
 
 const PRIORITY_RANK = { high: 3, medium: 2, low: 1, none: 0 }
 
@@ -56,6 +61,8 @@ export default function Home() {
   } = useTasksContext()
   const { isPremium, isPaid, trialActive, trialExpired, trialDaysLeft } = usePremiumContext()
   const { lang: voiceLang } = useVoiceLang()
+  const { colorFor } = useLabelsContext()
+  const { filters } = useFiltersContext()
   const { toast, showToast, dismissToast } = useToast()
   const [query, setQuery] = useState('')
   const [sortByPriority, setSortByPriority] = useState(false)
@@ -64,6 +71,8 @@ export default function Home() {
   const [listening, setListening] = useState(false)
   const [quickAdd, setQuickAdd] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('All')
+  const [labelFilter, setLabelFilter] = useState(null)
+  const [activeFilterId, setActiveFilterId] = useState(null)
   const recognitionRef = useRef(null)
 
   useEffect(() => {
@@ -100,7 +109,17 @@ export default function Home() {
   const today = todayISO()
   const isSearching = query.trim().length > 0
 
-  const matchesCategory = (t) => categoryFilter === 'All' || t.category === categoryFilter
+  const matchesCategory = (t) =>
+    (categoryFilter === 'All' || t.category === categoryFilter) &&
+    (!labelFilter || (t.labels ?? []).includes(labelFilter))
+
+  const activeFilter = filters.find((f) => f.id === activeFilterId)
+  const isFiltering = Boolean(activeFilter) && !isSearching
+  const filterResults = activeFilter
+    ? tasks
+        .filter((t) => matchesFilter(t, activeFilter.criteria, today))
+        .sort((a, b) => (a.date + (a.time || '99:99')).localeCompare(b.date + (b.time || '99:99')))
+    : []
 
   let todayTasks = tasks
     .filter((t) => isDueOn(t, today) && matchesCategory(t))
@@ -139,6 +158,36 @@ export default function Home() {
       tasks.filter((t) => isDueOn(t, today) || isOverdue(t, today)).map((t) => t.category),
     ),
   ]
+
+  // Labels in the same pool, but only once a single list is being viewed —
+  // combining "all labels across every list" with "one list" reads as noise,
+  // and Todoist scopes its own label filters the same way.
+  const usedLabels =
+    categoryFilter === 'All'
+      ? []
+      : [
+          ...new Set(
+            tasks
+              .filter((t) => t.category === categoryFilter && (isDueOn(t, today) || isOverdue(t, today)))
+              .flatMap((t) => t.labels ?? []),
+          ),
+        ]
+
+  // Sections only mean something once you're looking at one list — grouping
+  // "Work" and "Personal" tasks under a shared "Doing" header would conflate
+  // two different boards. Tasks without a section collect under one group so
+  // sectioned and unsectioned work can sit in the same list.
+  const sectionGroups =
+    categoryFilter !== 'All' && activeToday.some((t) => t.section)
+      ? Object.entries(
+          activeToday.reduce((acc, t) => {
+            const key = t.section || ''
+            acc[key] = acc[key] ?? []
+            acc[key].push(t)
+            return acc
+          }, {}),
+        ).sort(([a], [b]) => (a === '' ? 1 : b === '' ? -1 : a.localeCompare(b)))
+      : null
 
   const handleMicTap = () => {
     navigate('/record')
@@ -361,6 +410,21 @@ export default function Home() {
               </div>
             )}
 
+            {filters.length > 0 && (
+              <div className="filter-row">
+                {filters.map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    className={`filter-chip filter-chip--saved${activeFilterId === f.id ? ' filter-chip--active' : ''}`}
+                    onClick={() => setActiveFilterId((prev) => (prev === f.id ? null : f.id))}
+                  >
+                    <FilterIcon width={13} height={13} /> {f.name}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {usedCategories.length > 1 && (
               <div className="filter-row">
                 {['All', ...usedCategories].map((option) => (
@@ -368,7 +432,10 @@ export default function Home() {
                     key={option}
                     type="button"
                     className={`filter-chip${categoryFilter === option ? ' filter-chip--active' : ''}`}
-                    onClick={() => setCategoryFilter(option)}
+                    onClick={() => {
+                      setCategoryFilter(option)
+                      setLabelFilter(null)
+                    }}
                   >
                     {option}
                   </button>
@@ -376,6 +443,54 @@ export default function Home() {
               </div>
             )}
 
+            {usedLabels.length > 0 && (
+              <div className="filter-row">
+                {usedLabels.map((name) => (
+                  <LabelChip
+                    key={name}
+                    name={name}
+                    color={colorFor(name)}
+                    selected={labelFilter === name}
+                    onClick={() => setLabelFilter((prev) => (prev === name ? null : name))}
+                  />
+                ))}
+              </div>
+            )}
+
+            {isFiltering ? (
+              <section>
+                <div className="section-title-row">
+                  <h2 className="section-title">Filter: {activeFilter.name}</h2>
+                  <button type="button" className="sort-toggle" onClick={() => setActiveFilterId(null)}>
+                    Clear
+                  </button>
+                </div>
+                {filterResults.length === 0 ? (
+                  <div className="empty-state">
+                    <p>No tasks match this filter.</p>
+                  </div>
+                ) : (
+                  <div className="task-list">
+                    {filterResults.map((task) => (
+                      <TaskItem
+                        key={task.id}
+                        task={task}
+                        onToggle={toggleDone}
+                        onDelete={handleDelete}
+                        onEdit={handleEdit}
+                        onToggleSubtask={toggleSubtask}
+                        onSnooze={handleSnooze}
+                        isPremium={isPremium}
+                        selectMode={selectMode}
+                        selected={selectedIds.includes(task.id)}
+                        onToggleSelect={handleToggleSelect}
+                      />
+                    ))}
+                  </div>
+                )}
+              </section>
+            ) : (
+              <>
             {overdueTasks.length > 0 && (
               <section>
                 <h2 className="section-title section-title--danger">Overdue · {overdueTasks.length}</h2>
@@ -444,6 +559,32 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
+              ) : sectionGroups ? (
+                sectionGroups.map(([section, sectionTasks]) => (
+                  <div key={section || '__none__'} className="task-section">
+                    <h3 className="task-section__title">{section || 'No section'}</h3>
+                    <div className="task-list">
+                      {sectionTasks.map((task) => (
+                        <TaskItem
+                          key={task.id}
+                          task={task}
+                          onToggle={toggleDone}
+                          onDelete={handleDelete}
+                          onEdit={handleEdit}
+                          onToggleSubtask={toggleSubtask}
+                          onSnooze={handleSnooze}
+                          isPremium={isPremium}
+                          onReorder={sortByPriority ? undefined : (id, dir) => reorderTask(id, dir, todayTaskIds)}
+                          isFirst={todayTaskIds.indexOf(task.id) === 0}
+                          isLast={todayTaskIds.indexOf(task.id) === todayTaskIds.length - 1}
+                          selectMode={selectMode}
+                          selected={selectedIds.includes(task.id)}
+                          onToggleSelect={handleToggleSelect}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))
               ) : (
                 <div className="task-list">
                   {activeToday.map((task) => (
@@ -488,6 +629,8 @@ export default function Home() {
                   ))}
                 </div>
               </section>
+            )}
+              </>
             )}
           </>
         )}

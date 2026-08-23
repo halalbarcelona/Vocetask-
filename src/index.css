@@ -356,12 +356,12 @@ a {
 .task-card__meta {
   display: flex;
   align-items: center;
-  gap: var(--s2);
+  flex-wrap: wrap;
+  gap: 3px var(--s2);
   margin: 2px 0 0;
   font-size: var(--t-sm);
   color: var(--text-faint);
   min-width: 0;
-  overflow: hidden;
 }
 
 .task-card__meta:empty {
@@ -2015,4 +2015,78 @@ a {
   font-size: var(--t-sm);
   font-weight: 600;
   text-align: center;
+}
+
+/* Filters page */
+.template-card__name-button {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  border: none;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  flex: 1;
+  min-width: 0;
+}
+
+.template-card__name-button svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+/* Labels (Confirm, Filters, task cards) */
+.label-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+  font-size: var(--t-xs);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.label-chip--button {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  padding: var(--s1) var(--s2);
+  font-size: var(--t-sm);
+}
+
+.label-chip__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.label-add-row {
+  display: flex;
+  gap: var(--s2);
+  margin-top: var(--s2);
+}
+
+.label-add-row .field__input {
+  flex: 1;
+}
+
+.task-card__meta .label-chip {
+  flex-shrink: 0;
+}
+
+.filter-chip--saved {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+}
+
+/* Sections within a single list (Home, when one list is selected) */
+.task-section + .task-section {
+  margin-top: var(--s4);
+}
+
+.task-section__title {
+  margin: 0 0 var(--s2);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--text-muted);
 }

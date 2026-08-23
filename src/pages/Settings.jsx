@@ -213,6 +213,11 @@ export default function Settings() {
               label="Task templates"
               onClick={() => (isPremium ? navigate('/templates') : navigate('/upgrade'))}
             />
+            <PremiumRow
+              isPremium={isPremium}
+              label="Filters"
+              onClick={() => (isPremium ? navigate('/filters') : navigate('/upgrade'))}
+            />
           </div>
         </section>
 

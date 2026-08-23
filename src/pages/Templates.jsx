@@ -23,7 +23,7 @@ export default function Templates() {
         <button type="button" className="icon-button" onClick={() => navigate(-1)} aria-label="Go back">
           <BackIcon />
         </button>
-        <h1 className="page-header__title">Task Templates</h1>
+        <h1 className="page-header__title">Task templates</h1>
         <span className="icon-button icon-button--spacer" />
       </header>
 

@@ -6,7 +6,16 @@ import { useToast } from '../hooks/useToast'
 import TaskItem from '../components/TaskItem'
 import Toast from '../components/Toast'
 import BottomTabBar from '../components/BottomTabBar'
-import { CheckIcon, MicIcon, PlusIcon, SearchIcon, SpeakerIcon, TrashIcon } from '../components/icons'
+import {
+  CheckIcon,
+  FlameIcon,
+  MicIcon,
+  PlusIcon,
+  SearchIcon,
+  SparkIcon,
+  SpeakerIcon,
+  TrashIcon,
+} from '../components/icons'
 import { todayISO } from '../utils/dateUtils'
 import { isDueOn, isOverdue } from '../utils/recurrence'
 import { computeStreak } from '../utils/stats'
@@ -252,14 +261,6 @@ export default function Home() {
           >
             <PlusIcon />
           </button>
-          <button
-            type="button"
-            className="icon-button icon-button--accent"
-            onClick={handleMicTap}
-            aria-label="Record a task with your voice"
-          >
-            <MicIcon />
-          </button>
         </div>
       </header>
 
@@ -271,7 +272,8 @@ export default function Home() {
             onClick={() => navigate('/upgrade')}
           >
             <span>
-              ✨ Premium trial — {trialDaysLeft} day{trialDaysLeft === 1 ? '' : 's'} left
+              <SparkIcon width={14} height={14} /> Premium trial — {trialDaysLeft} day
+              {trialDaysLeft === 1 ? '' : 's'} left
             </span>
             <span className="trial-banner__cta">Keep it →</span>
           </button>
@@ -279,7 +281,7 @@ export default function Home() {
 
         {streak > 0 && (
           <p className="streak-banner">
-            <span className="streak-banner__flame">🔥</span>
+            <FlameIcon width={14} height={14} />
             {streak}-day streak
           </p>
         )}
@@ -304,7 +306,7 @@ export default function Home() {
 
         {isSearching ? (
           <section>
-            <h2 className="section-title">Search Results</h2>
+            <h2 className="section-title">Search results</h2>
             {searchResults.length === 0 ? (
               <div className="empty-state">
                 <p>No matching tasks.</p>
@@ -501,6 +503,10 @@ export default function Home() {
       )}
 
       <Toast toast={toast} onDismiss={dismissToast} />
+      <button type="button" className="fab" onClick={handleMicTap} aria-label="Add a task with your voice">
+        <MicIcon width={26} height={26} />
+      </button>
+
       <BottomTabBar />
     </div>
   )

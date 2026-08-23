@@ -12,7 +12,7 @@ const STRIPE_CONFIGURED = Boolean(STRIPE_PUBLISHABLE_KEY && STRIPE_BUY_BUTTON_ID
 
 const FEATURES = [
   { label: 'Tasks (voice + manual)', free: 'Unlimited', premium: 'Unlimited' },
-  { label: 'Recurring tasks', free: '—', premium: 'Daily / Weekly / Monthly / Custom' },
+  { label: 'Recurring tasks', free: '—', premium: 'Any schedule' },
   { label: 'Subtasks / checklists', free: '—', premium: 'Included' },
   { label: 'Voice actions (done, delete, reschedule)', free: '—', premium: 'Included' },
   { label: 'Calendar export (.ics)', free: '—', premium: 'Included' },
@@ -103,7 +103,7 @@ export default function Upgrade() {
           <div className="plan-table__row plan-table__row--header">
             <span />
             <span>Free</span>
-            <span>Premium · one-time</span>
+            <span>Premium</span>
           </div>
           {FEATURES.map((row) => (
             <div className="plan-table__row" key={row.label}>

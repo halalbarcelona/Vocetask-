@@ -50,7 +50,9 @@ export default function TaskItem({
         ) : (
           <button
             type="button"
-            className={`task-card__checkbox${isDone ? ' task-card__checkbox--checked' : ''}`}
+            className={`task-card__checkbox${isDone ? ' task-card__checkbox--checked' : ''}${
+              priority && !isDone ? ` task-card__checkbox--${priority}` : ''
+            }`}
             onClick={() => onToggle(task.id)}
             aria-label={isDone ? 'Mark task as not done' : 'Mark task as done'}
           >
@@ -60,22 +62,21 @@ export default function TaskItem({
 
         <div className="task-card__body" onClick={handleBodyClick}>
           <p className="task-card__title">
-            {priority && <span className={`task-card__priority-flag task-card__priority-flag--${priority}`} />}
             <span className="task-card__title-text">{task.title || 'Untitled task'}</span>
             {isRecurring && <RepeatIcon className="task-card__repeat-icon" />}
           </p>
-          <p className="task-card__time">
-            {task.time && formatTimeLabel(task.time)}
+          <p className="task-card__meta">
+            {task.time && <span className="task-card__meta-item">{formatTimeLabel(task.time)}</span>}
+            {task.time && <span className="task-card__meta-dot">·</span>}
+            <CategoryChip category={task.category} />
+            {subtasks.length > 0 && <span className="task-card__meta-dot">·</span>}
             {subtasks.length > 0 && (
-              <span className="task-card__subtask-count">
-                {task.time ? ' · ' : ''}
-                {doneSubtasks}/{subtasks.length} subtasks
+              <span className="task-card__meta-item">
+                {doneSubtasks}/{subtasks.length} done
               </span>
             )}
           </p>
         </div>
-
-        <CategoryChip category={task.category} />
 
         {!selectMode && onReorder && (
           <div className="task-card__reorder">

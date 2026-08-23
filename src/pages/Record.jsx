@@ -12,6 +12,14 @@ import { findBestMatchingTask, parseVoiceAction } from '../utils/voiceAction'
 // that yields the most structure is a free accuracy win.
 const MAX_ALTERNATIVES = 4
 
+// Same phrases the Home empty state offers. Tapping one fills the transcript,
+// so a user who won't speak in public can still see the Hinglish parsing work.
+const VOICE_EXAMPLES = [
+  'kal subah 9 baje call mummy',
+  'aaj shaam 6 baje gym',
+  'Team meeting tomorrow at 3pm',
+]
+
 function bestAlternative(result) {
   let best = result[0]?.transcript ?? ''
   let bestScore = parseConfidence(best)
@@ -132,7 +140,7 @@ export default function Record() {
         <button type="button" className="icon-button" onClick={() => navigate(-1)} aria-label="Go back">
           <BackIcon />
         </button>
-        <h1 className="page-header__title">Record Task</h1>
+        <h1 className="page-header__title">Record task</h1>
         <span className="icon-button icon-button--spacer" />
       </header>
 
@@ -162,7 +170,23 @@ export default function Record() {
         </p>
 
         {supportsSpeech ? (
-          <p className="transcript">{transcript || '…'}</p>
+          transcript ? (
+            <p className="transcript">{transcript}</p>
+          ) : (
+            <div className="record-examples">
+              <p className="record-examples__label">Things you can say</p>
+              {VOICE_EXAMPLES.map((example) => (
+                <button
+                  key={example}
+                  type="button"
+                  className="example-chip"
+                  onClick={() => setTranscript(example)}
+                >
+                  <MicIcon width={13} height={13} /> “{example}”
+                </button>
+              ))}
+            </div>
+          )
         ) : (
           <textarea
             className="transcript-input"

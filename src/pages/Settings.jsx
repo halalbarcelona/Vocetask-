@@ -94,7 +94,9 @@ export default function Settings() {
           </div>
         </div>
 
-        <p className="trust-badge">🔒 Your tasks stay on this device — nothing is uploaded to a server.</p>
+        <p className="trust-badge">
+          <LockIcon width={13} height={13} /> Your tasks stay on this device — nothing is uploaded.
+        </p>
 
         <div className={`upgrade-banner${isPremium ? ' upgrade-banner--premium' : ''}`}>
           <div>
@@ -125,13 +127,13 @@ export default function Settings() {
           <div className="card">
             <div className="settings-row">
               <span>
-                Push Notifications
+                Push notifications
                 {notifications.enabled && <span className="settings-row__note"> · while app is open</span>}
               </span>
               <Toggle
                 checked={notifications.enabled}
                 onChange={notifications.setEnabled}
-                label="Push Notifications"
+                label="Push notifications"
               />
             </div>
             <div className="settings-row">
@@ -156,8 +158,8 @@ export default function Settings() {
               </div>
             </div>
             <div className="settings-row">
-              <span>Calendar Sync</span>
-              <Toggle checked={calendarSync} onChange={setCalendarSync} label="Calendar Sync" />
+              <span>Calendar sync</span>
+              <Toggle checked={calendarSync} onChange={setCalendarSync} label="Calendar sync" />
             </div>
           </div>
         </section>
@@ -167,12 +169,12 @@ export default function Settings() {
           <div className="card">
             <PremiumRow
               isPremium={isPremium}
-              label="Productivity Report"
+              label="Productivity report"
               onClick={() => (isPremium ? navigate('/stats') : navigate('/upgrade'))}
             />
             <PremiumRow
               isPremium={isPremium}
-              label="Task Templates"
+              label="Task templates"
               onClick={() => (isPremium ? navigate('/templates') : navigate('/upgrade'))}
             />
           </div>
@@ -183,12 +185,12 @@ export default function Settings() {
           <div className="card">
             <PremiumRow
               isPremium={isPremium}
-              label="Export to Calendar (.ics)"
+              label="Export to calendar (.ics)"
               onClick={() => (isPremium ? downloadICS(tasks) : navigate('/upgrade'))}
             />
-            <PremiumRow isPremium={isPremium} label="Backup Tasks (.json)" onClick={handleBackup} />
-            <PremiumRow isPremium={isPremium} label="Restore from Backup" onClick={handleRestoreClick} />
-            <PremiumRow isPremium={isPremium} label="Share Today’s List" onClick={handleShareToday} />
+            <PremiumRow isPremium={isPremium} label="Backup tasks (.json)" onClick={handleBackup} />
+            <PremiumRow isPremium={isPremium} label="Restore from backup" onClick={handleRestoreClick} />
+            <PremiumRow isPremium={isPremium} label="Share today’s list" onClick={handleShareToday} />
             <input
               ref={importInputRef}
               type="file"
@@ -204,11 +206,11 @@ export default function Settings() {
           <h2 className="section-title">General</h2>
           <div className="card">
             <button type="button" className="settings-row settings-row--link" onClick={() => navigate('/account')}>
-              <span>Account Settings</span>
+              <span>Account settings</span>
               <ChevronIcon />
             </button>
             <button type="button" className="settings-row settings-row--link" onClick={() => navigate('/privacy')}>
-              <span>Privacy Policy</span>
+              <span>Privacy policy</span>
               <ChevronIcon />
             </button>
           </div>

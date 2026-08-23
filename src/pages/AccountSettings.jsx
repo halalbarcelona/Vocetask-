@@ -61,7 +61,7 @@ export default function AccountSettings() {
         <button type="button" className="icon-button" onClick={() => navigate(-1)} aria-label="Go back">
           <BackIcon />
         </button>
-        <h1 className="page-header__title">Account Settings</h1>
+        <h1 className="page-header__title">Account settings</h1>
         <span className="icon-button icon-button--spacer" />
       </header>
 
@@ -88,7 +88,7 @@ export default function AccountSettings() {
           </label>
 
           <button type="submit" className="button button--primary button--wide">
-            {saved ? 'Saved' : 'Save Changes'}
+            {saved ? 'Saved' : 'Save changes'}
           </button>
         </form>
 
@@ -96,10 +96,10 @@ export default function AccountSettings() {
           <h2 className="section-title">Account</h2>
           <div className="card">
             <button type="button" className="settings-row settings-row--link" onClick={handleLogOut}>
-              <span>Log Out</span>
+              <span>Log out</span>
             </button>
             <button type="button" className="settings-row settings-row--danger" onClick={handleDeleteAccount}>
-              <span>Delete Account</span>
+              <span>Delete account</span>
             </button>
           </div>
         </section>

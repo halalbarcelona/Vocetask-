@@ -166,3 +166,20 @@ export function MoonIcon(props) {
     </svg>
   )
 }
+
+export function FlameIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" {...props}>
+      <path d="M12.8 2.2c.3 2.4-.7 3.9-2 5.2-1.4 1.5-3 3-3 5.9a5.2 5.2 0 0 0 10.4 0c0-1.4-.5-2.5-1.2-3.4-.3.7-.9 1.2-1.6 1.2-1 0-1.6-.8-1.5-1.9.2-2.6-.4-5-1.1-7z" />
+    </svg>
+  )
+}
+
+export function SparkIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" {...props}>
+      <path d="M12 2.5l1.9 5.3 5.3 1.9-5.3 1.9L12 16.9l-1.9-5.3-5.3-1.9 5.3-1.9L12 2.5z" />
+      <path d="M18.5 15l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9.9-2.4z" opacity=".65" />
+    </svg>
+  )
+}

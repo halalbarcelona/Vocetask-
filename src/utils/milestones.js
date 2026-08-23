@@ -30,17 +30,17 @@ export function checkMilestone(tasks, streak) {
 
   if (streak >= 7 && !seen.has('streak-7')) {
     markSeen('streak-7')
-    return { id: 'streak-7', message: `🔥 ${streak}-day streak! You're on a roll.` }
+    return { id: 'streak-7', message: `${streak} days in a row. Nice run.` }
   }
 
   const done = completedCount(tasks)
   if (done >= 50 && !seen.has('done-50')) {
     markSeen('done-50')
-    return { id: 'done-50', message: `🎉 ${done} tasks completed with Aura.` }
+    return { id: 'done-50', message: `${done} tasks done. That adds up.` }
   }
   if (done >= 10 && !seen.has('done-10')) {
     markSeen('done-10')
-    return { id: 'done-10', message: '✅ 10 tasks done. Nice work.' }
+    return { id: 'done-10', message: '10 tasks done already.' }
   }
 
   return null

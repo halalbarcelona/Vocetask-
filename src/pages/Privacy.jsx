@@ -10,7 +10,7 @@ export default function Privacy() {
         <button type="button" className="icon-button" onClick={() => navigate(-1)} aria-label="Go back">
           <BackIcon />
         </button>
-        <h1 className="page-header__title">Privacy Policy</h1>
+        <h1 className="page-header__title">Privacy policy</h1>
         <span className="icon-button icon-button--spacer" />
       </header>
 

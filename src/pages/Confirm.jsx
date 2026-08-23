@@ -159,10 +159,10 @@ export default function Confirm() {
   }
 
   const hint = isEditing
-    ? 'Edit this task and save your changes.'
+    ? 'Change whatever you need, then save.'
     : draftTask.source === 'voice'
-      ? 'Check the details — we parsed your voice command. Tap any field to edit.'
-      : 'Fill in the details for your task.'
+      ? 'Here’s what we heard. Tap anything that looks off.'
+      : 'Add the details and save.'
 
   return (
     <div className="screen">
@@ -170,7 +170,7 @@ export default function Confirm() {
         <button type="button" className="icon-button" onClick={handleDiscard} aria-label="Discard and go back">
           <BackIcon />
         </button>
-        <h1 className="page-header__title">{isEditing ? 'Edit Task' : 'Confirm Task'}</h1>
+        <h1 className="page-header__title">{isEditing ? 'Edit task' : 'Confirm task'}</h1>
         <span className="icon-button icon-button--spacer" />
       </header>
 
@@ -179,7 +179,7 @@ export default function Confirm() {
 
         <div className="card confirm-card">
           <label className="field">
-            <span className="field__label">Task Title</span>
+            <span className="field__label">Task</span>
             <input
               type="text"
               className="field__input"
@@ -352,10 +352,10 @@ export default function Confirm() {
 
         <div className="confirm-actions">
           <button type="button" className="button button--primary button--wide" onClick={handleSave}>
-            {isEditing ? 'Save Changes' : 'Save Task'}
+            {isEditing ? 'Save changes' : 'Save task'}
           </button>
           <button type="button" className="button button--ghost button--wide" onClick={handleSaveTemplate}>
-            {templateSaved ? 'Saved as Template ✓' : 'Save as Template'}
+            {templateSaved ? 'Saved as template' : 'Save as template'}
           </button>
           <button type="button" className="button button--ghost button--wide" onClick={handleDiscard}>
             {isEditing ? 'Cancel' : 'Discard'}

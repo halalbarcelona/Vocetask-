@@ -16,7 +16,7 @@ import {
 
 export default function Calendar() {
   const navigate = useNavigate()
-  const { tasks, toggleDone, setDraftTask } = useTasksContext()
+  const { tasks, toggleDone, toggleSubtask, setDraftTask } = useTasksContext()
 
   const handleEdit = (task) => {
     setDraftTask({ ...task })
@@ -140,7 +140,13 @@ export default function Calendar() {
               ) : (
                 <div className="task-list">
                   {selectedDayTasks.map((task) => (
-                    <TaskItem key={task.id} task={task} onToggle={toggleDone} onEdit={handleEdit} />
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      onToggle={toggleDone}
+                      onEdit={handleEdit}
+                      onToggleSubtask={toggleSubtask}
+                    />
                   ))}
                 </div>
               )}
@@ -158,7 +164,13 @@ export default function Calendar() {
                   <h2 className="section-title">{formatDateLabel(group.date)}</h2>
                   <div className="task-list">
                     {group.tasks.map((task) => (
-                      <TaskItem key={task.id} task={task} onToggle={toggleDone} onEdit={handleEdit} />
+                      <TaskItem
+                      key={task.id}
+                      task={task}
+                      onToggle={toggleDone}
+                      onEdit={handleEdit}
+                      onToggleSubtask={toggleSubtask}
+                    />
                     ))}
                   </div>
                 </div>

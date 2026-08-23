@@ -22,7 +22,7 @@ export default function Stats() {
         <button type="button" className="icon-button" onClick={() => navigate(-1)} aria-label="Go back">
           <BackIcon />
         </button>
-        <h1 className="page-header__title">Productivity Report</h1>
+        <h1 className="page-header__title">Productivity report</h1>
         <span className="icon-button icon-button--spacer" />
       </header>
 

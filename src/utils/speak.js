@@ -2,11 +2,19 @@ import { formatTimeLabel } from './dateUtils'
 
 export const supportsSpeechSynthesis = typeof window !== 'undefined' && 'speechSynthesis' in window
 
+// Devanagari read by an en-US voice comes out as noise. Tagging the
+// utterance en-IN lets the platform pick a voice that handles both scripts.
+function utter(text) {
+  const u = new SpeechSynthesisUtterance(text)
+  u.lang = 'en-IN'
+  return u
+}
+
 export function speakDailyRecap(tasks) {
   if (!supportsSpeechSynthesis) return
 
   if (tasks.length === 0) {
-    window.speechSynthesis.speak(new SpeechSynthesisUtterance('You have no tasks today. Enjoy your day.'))
+    window.speechSynthesis.speak(utter('You have no tasks today. Enjoy your day.'))
     return
   }
 
@@ -16,5 +24,5 @@ export function speakDailyRecap(tasks) {
   const text = `${intro} ${lines.join('. ')}.`
 
   window.speechSynthesis.cancel()
-  window.speechSynthesis.speak(new SpeechSynthesisUtterance(text))
+  window.speechSynthesis.speak(utter(text))
 }

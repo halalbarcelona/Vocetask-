@@ -61,7 +61,7 @@ function PremiumLabel({ isPremium, children }) {
 
 export default function Confirm() {
   const navigate = useNavigate()
-  const { tasks, draftTask, setDraftTask, addTask, updateTask, clearDraft } = useTasksContext()
+  const { draftTask, setDraftTask, addTask, updateTask, clearDraft } = useTasksContext()
   const { isPremium } = usePremiumContext()
   const { categories, addCategory } = useCategoriesContext()
   const { saveTemplate } = useTemplates()
@@ -212,7 +212,7 @@ export default function Confirm() {
           </div>
 
           <div className="field">
-            <PremiumLabel isPremium>Category</PremiumLabel>
+            <span className="field__label">Category</span>
             <div className="chip-row">
               {categories.map((category) => (
                 <CategoryChip

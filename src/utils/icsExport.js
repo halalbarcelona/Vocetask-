@@ -13,6 +13,27 @@ function formatStamp(date) {
   )
 }
 
+const ICS_DAYS = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA']
+
+// Maps our recurrence model onto an RFC5545 RRULE. Without this a daily task
+// exported as a single one-off event, which is not what the user set up.
+function recurrenceRule(task) {
+  switch (task.recurrence) {
+    case 'daily':
+      return 'RRULE:FREQ=DAILY'
+    case 'weekly':
+      return 'RRULE:FREQ=WEEKLY'
+    case 'monthly':
+      return 'RRULE:FREQ=MONTHLY'
+    case 'custom': {
+      const days = (task.recurrenceDays ?? []).map((d) => ICS_DAYS[d]).filter(Boolean)
+      return days.length ? `RRULE:FREQ=WEEKLY;BYDAY=${days.join(',')}` : null
+    }
+    default:
+      return null
+  }
+}
+
 // Builds a floating-time (no timezone) .ics file — good enough for a
 // client-only app with no timezone data attached to tasks. Calendar apps
 // interpret floating times as local to whichever device imports them.
@@ -32,6 +53,8 @@ export function buildICS(tasks) {
     } else {
       lines.push(`DTSTART;VALUE=DATE:${datePart}`)
     }
+    const rule = recurrenceRule(task)
+    if (rule) lines.push(rule)
     lines.push(`SUMMARY:${escapeText(task.title || 'Untitled task')}`)
     lines.push(`CATEGORIES:${escapeText(task.category || 'Personal')}`)
     lines.push('END:VEVENT')

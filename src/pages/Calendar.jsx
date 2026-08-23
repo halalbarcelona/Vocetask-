@@ -4,6 +4,7 @@ import { useTasksContext } from '../hooks/TasksContext'
 import TaskItem from '../components/TaskItem'
 import BottomTabBar from '../components/BottomTabBar'
 import { ChevronIcon } from '../components/icons'
+import { isDueOn } from '../utils/recurrence'
 import {
   buildMonthGrid,
   formatDateLabel,
@@ -31,22 +32,21 @@ export default function Calendar() {
 
   const grid = useMemo(() => buildMonthGrid(year, month), [year, month])
 
-  const tasksByDate = useMemo(() => {
-    const map = new Map()
-    for (const task of tasks) {
-      if (!map.has(task.date)) map.set(task.date, [])
-      map.get(task.date).push(task)
-    }
-    return map
-  }, [tasks])
+  // Recurrence-aware: a daily task is due every day, not only on the date it
+  // was created. Keyed lookup by task.date alone used to hide it everywhere
+  // except its creation day, disagreeing with what Home showed.
+  const tasksOn = (iso) =>
+    tasks
+      .filter((task) => isDueOn(task, iso))
+      .sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'))
 
-  const selectedDayTasks = (tasksByDate.get(selectedDate) || [])
-    .slice()
-    .sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'))
+  const selectedDayTasks = useMemo(() => tasksOn(selectedDate), [tasks, selectedDate])
 
   const upcomingGroups = useMemo(() => {
     const upcoming = tasks
-      .filter((t) => t.date >= today)
+      // Keep unfinished past tasks visible here too — Home surfaces them as
+      // Overdue, and this view silently dropping them lost real work.
+      .filter((t) => t.date >= today || !t.done)
       .slice()
       .sort((a, b) => (a.date + (a.time || '99:99')).localeCompare(b.date + (b.time || '99:99')))
 
@@ -112,7 +112,7 @@ export default function Calendar() {
               {grid.map((date) => {
                 const iso = toISODate(date)
                 const inMonth = date.getMonth() === month
-                const hasTasks = tasksByDate.has(iso)
+                const hasTasks = tasks.some((task) => isDueOn(task, iso))
                 const classes = [
                   'calendar-day',
                   !inMonth ? 'calendar-day--muted' : '',

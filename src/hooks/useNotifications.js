@@ -2,6 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { isDueOn } from '../utils/recurrence'
 import { todayISO } from '../utils/dateUtils'
 
+function isAlreadyDone(task, today) {
+  return task.recurrence && task.recurrence !== 'none'
+    ? (task.completedDates ?? []).includes(today)
+    : task.done
+}
+
 const STORAGE_KEY = 'aura-notifications'
 
 export const notificationsSupported = typeof window !== 'undefined' && 'Notification' in window
@@ -39,7 +45,8 @@ export function useNotifications(tasks) {
     const now = Date.now()
 
     for (const task of tasks) {
-      if (!task.time || !isDueOn(task, today)) continue
+      // Don't nag about something they already finished.
+      if (!task.time || !isDueOn(task, today) || isAlreadyDone(task, today)) continue
       const [h, m] = task.time.split(':').map(Number)
       const target = new Date()
       target.setHours(h, m, 0, 0)

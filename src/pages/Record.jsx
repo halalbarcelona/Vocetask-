@@ -98,7 +98,11 @@ export default function Record() {
 
     const action = isPremium ? parseVoiceAction(transcript) : { type: 'create' }
     if (action.type !== 'create') {
-      const match = findBestMatchingTask(action.phrase, tasks)
+      // Deleting is destructive, so demand a clearly stronger match than
+      // completing or rescheduling before acting on it.
+      const match = findBestMatchingTask(action.phrase, tasks, {
+        minScore: action.type === 'delete' ? 0.7 : 0.5,
+      })
       if (match) {
         if (action.type === 'complete') {
           toggleDone(match.id)

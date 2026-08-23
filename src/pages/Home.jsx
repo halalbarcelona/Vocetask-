@@ -118,9 +118,14 @@ export default function Home() {
   const todayTaskIds = todayTasks.map((t) => t.id)
   const streak = computeStreak(tasks)
 
-  // Categories actually in use today, so the filter row never shows an
-  // option that would produce an empty list.
-  const usedCategories = [...new Set(tasks.filter((t) => isDueOn(t, today)).map((t) => t.category))]
+  // Categories in use across everything the list can show — today's tasks and
+  // overdue ones. Built from today alone, an overdue task in some other
+  // category had no chip to reach it and stayed hidden behind any filter.
+  const usedCategories = [
+    ...new Set(
+      tasks.filter((t) => isDueOn(t, today) || isOverdue(t, today)).map((t) => t.category),
+    ),
+  ]
 
   const handleMicTap = () => {
     navigate('/record')
@@ -205,7 +210,7 @@ export default function Home() {
       return
     }
     const recognition = new SpeechRecognitionAPI()
-    recognition.lang = 'en-US'
+    recognition.lang = 'en-IN'
     recognition.interimResults = false
     recognition.onresult = (event) => {
       const text = event.results[0]?.[0]?.transcript ?? ''

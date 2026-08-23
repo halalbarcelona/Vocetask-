@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { todayISO } from '../utils/dateUtils'
 
 const STORAGE_KEY = 'aura-tasks'
 
@@ -72,7 +73,7 @@ export function useTasks() {
       prev.map((t) => {
         if (t.id !== id) return t
         if (t.recurrence && t.recurrence !== 'none') {
-          const date = forDate ?? new Date().toISOString().slice(0, 10)
+          const date = forDate ?? todayISO()
           const dates = t.completedDates ?? []
           const has = dates.includes(date)
           return { ...t, completedDates: has ? dates.filter((d) => d !== date) : [...dates, date] }
@@ -152,7 +153,7 @@ export function useTasks() {
 
   const bulkMarkDone = useCallback((ids) => {
     const idSet = new Set(ids)
-    const today = new Date().toISOString().slice(0, 10)
+    const today = todayISO()
     setTasks((prev) =>
       prev.map((t) => {
         if (!idSet.has(t.id)) return t

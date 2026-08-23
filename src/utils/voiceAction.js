@@ -76,7 +76,7 @@ function normalize(s) {
 // overlap and edit-distance similarity, so a transcription near-miss
 // ("call mummi" vs "Call mummy") still lands on the right task — word
 // overlap alone scores that zero, since one wrong letter kills the match.
-export function findBestMatchingTask(phrase, tasks) {
+export function findBestMatchingTask(phrase, tasks, { minScore = 0.5 } = {}) {
   const normPhrase = normalize(phrase)
   if (!normPhrase) return null
   const phraseWords = new Set(normPhrase.split(/\s+/).filter(Boolean))
@@ -91,8 +91,15 @@ export function findBestMatchingTask(phrase, tasks) {
     if (normTitle === normPhrase) return task
 
     let score
-    if (normTitle.includes(normPhrase) || normPhrase.includes(normTitle)) {
+    if (normTitle.includes(normPhrase)) {
+      // They said part of a title ("the meeting" -> "Team standup meeting").
+      // Strong evidence: everything they said points at this task.
       score = 0.9
+    } else if (normPhrase.includes(normTitle)) {
+      // The title sits inside a longer phrase ("gym" inside "gym membership").
+      // Weak evidence — this is how "Cancel gym membership" used to delete
+      // "Gym". Score by how much of what they said the title actually covers.
+      score = normTitle.length / normPhrase.length
     } else {
       const titleWords = new Set(normTitle.split(/\s+/).filter(Boolean))
       const overlap = [...phraseWords].filter((w) => titleWords.has(w)).length
@@ -106,5 +113,5 @@ export function findBestMatchingTask(phrase, tasks) {
     }
   }
 
-  return bestScore >= 0.5 ? best : null
+  return bestScore >= minScore ? best : null
 }

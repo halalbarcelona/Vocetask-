@@ -44,7 +44,10 @@ const BAJE_RE = new RegExp(`${L}(?:(${PERIOD})\\s+)?(${NUM})\\s*(?:baje|बज�
 const DAY_WORD_RE = new RegExp(`${L}(today|tonight|tomorrow|aaj|kal|parso|parson|narso|आज|कल|परसों)${R}`, 'iu')
 const WEEKDAY_RE = new RegExp(`${L}(?:(agle|next|is|this|iss)\\s+)?(${WEEKDAY})${R}`, 'iu')
 // "2 din baad", "teen hafte baad"
-const RELATIVE_RE = new RegExp(`\\b(${NUM})\\s*(din|day|days|hafte|hafta|week|weeks|mahine|mahina|month|months)\\s*(?:baad|bad|later)\\b`, 'i')
+const RELATIVE_RE = new RegExp(
+  `${L}(${NUM})\\s*(din|day|days|hafte|hafta|week|weeks|mahine|mahina|month|months)(?:\\s+(?:baad|bad|later|me|mein|में))?${R}`,
+  'iu',
+)
 const NEXT_PERIOD_RE = /\b(agle|next)\s+(hafte|hafta|week|mahine|mahina|month)\b/i
 // "15 tarikh", "15 January", "15 Jan"
 const TARIKH_RE = new RegExp(`${L}(\\d{1,2})\\s*(?:tarikh|तारीख)${R}`, 'iu')
@@ -69,7 +72,9 @@ function clockTo24(hour, minute, period) {
 // casual use ("5 baje milte hain"), larger ones morning.
 function guessPeriod(hour) {
   const h = Number(hour) % 12
-  return h >= 1 && h <= 6 ? 'pm' : 'am'
+  // 7-11 read as morning; 12 and 1-6 read as afternoon/evening. Users who
+  // mean otherwise say a period word ("raat 8 baje"), which wins over this.
+  return h >= 7 && h <= 11 ? 'am' : 'pm'
 }
 
 function resolvePeriod(explicit, hour) {

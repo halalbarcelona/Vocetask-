@@ -45,20 +45,24 @@ const DAY_WORD_RE = new RegExp(`${L}(today|tonight|tomorrow|aaj|kal|parso|parson
 const WEEKDAY_RE = new RegExp(`${L}(?:(agle|next|is|this|iss)\\s+)?(${WEEKDAY})${R}`, 'iu')
 // "2 din baad", "teen hafte baad"
 const RELATIVE_RE = new RegExp(
-  `${L}(${NUM})\\s*(din|day|days|hafte|hafta|week|weeks|mahine|mahina|month|months)(?:\\s+(?:baad|bad|later|me|mein|में))?${R}`,
+  `${L}(${NUM})\\s*(din|day|days|hafte|hafta|week|weeks|mahine|mahina|month|months|दिन|हफ़्ते|हफ्ते|महीने|महीना)` +
+    `(?:\\s+(?:baad|bad|later|me|mein|में|बाद))?${R}`,
   'iu',
 )
 const NEXT_PERIOD_RE = /\b(agle|next)\s+(hafte|hafta|week|mahine|mahina|month)\b/i
 // "15 tarikh", "15 January", "15 Jan"
-const TARIKH_RE = new RegExp(`${L}(\\d{1,2})\\s*(?:tarikh|तारीख)${R}`, 'iu')
+const TARIKH_RE = new RegExp(`${L}(\\d{1,2})\\s*(?:tarikh|तारीख़|तारीख)${R}`, 'iu')
 const DATE_MONTH_RE = new RegExp(`\\b(\\d{1,2})\\s*(?:st|nd|rd|th)?\\s+(${MONTH})\\b`, 'i')
 
 // --- recurrence --------------------------------------------------------------
 
 const RECUR_WEEKDAY_RE = new RegExp(`${L}(?:har|every|हर)\\s+(${WEEKDAY})${R}`, 'iu')
 const RECUR_MONTHLY_RE = new RegExp(`${L}(?:har|every|हर)\\s*(?:mahine|mahina|month|महीने)${R}`, 'iu')
-const RECUR_WEEKLY_RE = new RegExp(`${L}(every ?week|weekly|har ?hafte|har hafta|हर हफ्ते)${R}`, 'iu')
-const RECUR_DAILY_RE = new RegExp(`${L}(every ?day|daily|har ?roz|roz|har din|हर रोज|रोज|हर दिन)${R}`, 'iu')
+const RECUR_WEEKLY_RE = new RegExp(`${L}(every ?week|weekly|har ?hafte|har hafta|हर हफ़्ते|हर हफ्ते)${R}`, 'iu')
+// रोज़/हफ़्ते/तारीख़ carry a nukta that the hi-IN model writes and the plain
+// spelling does not, so both forms are listed rather than stripping the dot out
+// of the user's own words.
+const RECUR_DAILY_RE = new RegExp(`${L}(every ?day|daily|har ?roz|roz|har din|हर रोज़|हर रोज|रोज़|रोज|हर दिन)${R}`, 'iu')
 
 const PRIORITY_RE = new RegExp(`${L}(${alternation(Object.keys(PRIORITY_WORDS))})${R}`, 'iu')
 
@@ -258,7 +262,15 @@ function extractRecurrence(text) {
 }
 
 // Filler words that carry no task meaning once date/time have been pulled out.
-const FILLER_RE = /\b(?:karna hai|karni hai|karna|karni|hai|ko|par|pe|me|mein|mujhe|remind|reminder|set|add)\b/gi
+// Built with the same script-agnostic delimiters as everything else: JS \b is
+// defined on [A-Za-z0-9_] and so never matches beside Devanagari, which is why
+// "15 तारीख को बिजली का बिल" used to keep its stray को.
+const FILLER_WORDS = [
+  'karna hai', 'karni hai', 'karna', 'karni', 'hai', 'ko', 'par', 'pe', 'me', 'mein', 'mujhe',
+  'remind', 'reminder', 'set', 'add',
+  'करना है', 'करनी है', 'करना', 'करनी', 'है', 'को', 'पर', 'पे', 'में', 'मुझे',
+]
+const FILLER_RE = new RegExp(`(?:^|[\\s,.])(?:${alternation(FILLER_WORDS)})(?=$|[\\s,.!?])`, 'giu')
 
 export function parseVoiceCommand(rawTranscript) {
   const transcript = normalizeDigits(rawTranscript.trim())

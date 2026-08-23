@@ -10,17 +10,22 @@ const EVENT = 'aura-voice-lang-changed'
 // right but drops English words. Neither wins for everyone, so it's a setting —
 // and a one-tap retry on the Record screen, because the fastest way to fix a
 // bad transcript is to say it again into the other model.
+// Hindi first, and the default: forcing Hindi speech through an English
+// vocabulary is what produces "budget" for "baje" in the first place. hi-IN
+// transcribes to Devanagari, which the parser handles natively.
 export const VOICE_LANGS = [
+  { value: 'hi-IN', label: 'हिंदी', hint: 'Hindi, Devanagari' },
   { value: 'en-IN', label: 'Hinglish', hint: 'English + Hindi, Latin script' },
-  { value: 'hi-IN', label: 'हिंदी', hint: 'Devanagari' },
   { value: 'en-US', label: 'English', hint: 'US English' },
 ]
 
 const VALID = new Set(VOICE_LANGS.map((l) => l.value))
 
+export const DEFAULT_VOICE_LANG = 'hi-IN'
+
 function load() {
   const saved = localStorage.getItem(STORAGE_KEY)
-  return VALID.has(saved) ? saved : 'en-IN'
+  return VALID.has(saved) ? saved : DEFAULT_VOICE_LANG
 }
 
 export function otherLang(lang) {

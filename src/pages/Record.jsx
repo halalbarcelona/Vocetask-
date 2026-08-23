@@ -14,13 +14,14 @@ import { otherLang, useVoiceLang, VOICE_LANGS } from '../hooks/useVoiceLang'
 // that yields the most structure is a free accuracy win.
 const MAX_ALTERNATIVES = 4
 
-// Same phrases the Home empty state offers. Tapping one fills the transcript,
-// so a user who won't speak in public can still see the Hinglish parsing work.
-const VOICE_EXAMPLES = [
-  'kal subah 9 baje call mummy',
-  'aaj shaam 6 baje gym',
-  'Team meeting tomorrow at 3pm',
-]
+// Shown in the script the chosen model actually returns, so the examples match
+// what the user will see in the box rather than teaching a spelling the engine
+// never produces.
+const VOICE_EXAMPLES = {
+  'hi-IN': ['कल सुबह 9 बजे मम्मी को कॉल', 'आज शाम 6 बजे जिम', 'हर रोज़ सुबह 7 बजे उठना'],
+  'en-IN': ['kal subah 9 baje call mummy', 'aaj shaam 6 baje gym', 'Team meeting tomorrow at 3pm'],
+  'en-US': ['Call mum tomorrow at 9am', 'Gym today at 6pm', 'Team meeting every Monday'],
+}
 
 // Every alternative is repaired before it is scored. Without that, the
 // candidate that happens to contain "9 budget" scores zero and loses to a
@@ -365,7 +366,7 @@ export default function Record() {
         {supportsSpeech && !transcript.trim() && (
           <div className="record-examples">
             <p className="record-examples__label">Things you can say</p>
-            {VOICE_EXAMPLES.map((example) => (
+            {(VOICE_EXAMPLES[lang] ?? VOICE_EXAMPLES['en-IN']).map((example) => (
               <button
                 key={example}
                 type="button"

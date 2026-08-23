@@ -28,11 +28,12 @@ const PRIORITY_RANK = { high: 3, medium: 2, low: 1, none: 0 }
 
 // Shown in the first-run empty state so the Hinglish parsing — the thing that
 // makes this app different — gets discovered instead of sitting undiscovered.
-const VOICE_EXAMPLES = [
-  'kal subah 9 baje call mummy',
-  'aaj shaam 6 baje gym',
-  'Team meeting tomorrow at 3pm',
-]
+// Written in the script the user's own voice model returns.
+const VOICE_EXAMPLES = {
+  'hi-IN': ['कल सुबह 9 बजे मम्मी को कॉल', 'आज शाम 6 बजे जिम', 'हर रोज़ सुबह 7 बजे उठना'],
+  'en-IN': ['kal subah 9 baje call mummy', 'aaj shaam 6 baje gym', 'Team meeting tomorrow at 3pm'],
+  'en-US': ['Call mum tomorrow at 9am', 'Gym today at 6pm', 'Team meeting every Monday'],
+}
 
 const SpeechRecognitionAPI =
   typeof window !== 'undefined' ? window.SpeechRecognition || window.webkitSpeechRecognition : undefined
@@ -431,7 +432,7 @@ export default function Home() {
                   <p>Nothing for today yet.</p>
                   <p className="empty-state__hint">Tap the mic and say it — like this:</p>
                   <div className="example-list">
-                    {VOICE_EXAMPLES.map((example) => (
+                    {(VOICE_EXAMPLES[voiceLang] ?? VOICE_EXAMPLES['en-IN']).map((example) => (
                       <button
                         key={example}
                         type="button"

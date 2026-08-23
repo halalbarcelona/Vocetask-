@@ -23,12 +23,17 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
+      # Supabase config lives in the committed .env.production instead of a repo
+      # variable: the anon key is meant to be public (RLS is the real boundary,
+      # not the key's secrecy), and setting VITE_SUPABASE_* here would override
+      # that file with an empty string for as long as the repo variable is
+      # unset — Vite gives an explicitly-set env var priority over a .env file
+      # even when its value is blank. Stripe's keys aren't set yet, so they
+      # stay repo variables until they exist.
       - run: npm run build
         env:
           VITE_STRIPE_PUBLISHABLE_KEY: ${{ vars.STRIPE_PUBLISHABLE_KEY }}
           VITE_STRIPE_BUY_BUTTON_ID: ${{ vars.STRIPE_BUY_BUTTON_ID }}
-          VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
       - run: cp dist/index.html dist/404.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

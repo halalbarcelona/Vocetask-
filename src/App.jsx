@@ -17,6 +17,7 @@ import Privacy from './pages/Privacy'
 import Stats from './pages/Stats'
 import Templates from './pages/Templates'
 import TrialEnded from './pages/TrialEnded'
+import VoiceTest from './pages/VoiceTest'
 
 function RequireAccount() {
   const { hasAccount } = useAccountContext()
@@ -59,6 +60,7 @@ export default function App() {
                 <Route path="/stats" element={<Stats />} />
                 <Route path="/templates" element={<Templates />} />
                 <Route path="/trial-ended" element={<TrialEnded />} />
+                <Route path="/voice-test" element={<VoiceTest />} />
               </Route>
             </Routes>
           </CategoriesProvider>

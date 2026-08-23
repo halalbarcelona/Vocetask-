@@ -185,6 +185,14 @@ export default function Settings() {
                 ))}
               </div>
             </div>
+            <button
+              type="button"
+              className="settings-row settings-row--link"
+              onClick={() => navigate('/voice-test')}
+            >
+              <span>Test the mic</span>
+              <ChevronIcon />
+            </button>
             <div className="settings-row">
               <span>Calendar sync</span>
               <Toggle checked={calendarSync} onChange={setCalendarSync} label="Calendar sync" />

@@ -66,6 +66,17 @@ export default function Record() {
   // Set when the recogniser is about to be rebuilt on a new language and should
   // start listening as soon as it exists.
   const autoStartRef = useRef(false)
+  // Text finalised in earlier sessions. A restarted recogniser hands back an
+  // empty results list, so anything already said has to be kept out here or the
+  // next onresult overwrites it.
+  const committedRef = useRef('')
+  // Final text of the session running right now, so it can be committed at the
+  // moment that session ends.
+  const sessionFinalRef = useRef('')
+  const restartTimerRef = useRef(null)
+  // Guards against a recogniser that ends the instant it starts — Safari does
+  // this when it has nothing to listen to, and an unthrottled restart spins.
+  const emptyRestartsRef = useRef(0)
 
   const { lang, setLang } = useVoiceLang()
   const supportsSpeech = Boolean(SpeechRecognitionAPI)
@@ -80,34 +91,75 @@ export default function Record() {
     recognition.lang = lang
 
     recognition.onresult = (event) => {
-      let finalText = ''
-      let interimText = ''
+      const finalParts = []
+      const interimParts = []
       for (let i = 0; i < event.results.length; i++) {
         const result = event.results[i]
         // Only finalised results carry meaningful alternatives; interim ones
         // change on every frame, so scoring them just causes flicker.
         if (result.isFinal) {
-          finalText += bestAlternative(result)
+          finalParts.push(bestAlternative(result))
         } else {
-          interimText += result[0].transcript
+          interimParts.push(result[0].transcript)
         }
       }
-      setTranscript((finalText + ' ' + interimText).trim())
+      // Joined, not concatenated: the engine does not promise leading spaces,
+      // and two phrases run together are two words the parser will never match.
+      const finalText = finalParts.join(' ')
+      const interimText = interimParts.join(' ')
+      emptyRestartsRef.current = 0
+      sessionFinalRef.current = finalText
+      setTranscript([committedRef.current, finalText, interimText].join(' ').replace(/\s+/g, ' ').trim())
     }
 
     // Chrome ends the session after a few seconds of silence, which cut people
     // off mid-sentence — they pause to think and the mic is simply gone. If the
     // user hasn't tapped stop, start it again.
     recognition.onend = () => {
+      // Whatever this session finalised has to move somewhere durable first:
+      // the next session's results start empty and would otherwise replace it.
+      if (sessionFinalRef.current) {
+        committedRef.current = `${committedRef.current} ${sessionFinalRef.current}`.replace(/\s+/g, ' ').trim()
+        sessionFinalRef.current = ''
+      }
+
       if (!wantsToListenRef.current) {
         setIsListening(false)
         return
       }
-      try {
-        recognition.start()
-      } catch {
-        // Already restarting; the next onend will try again.
+
+      // A session can end without hearing anything for two very different
+      // reasons, and they need opposite responses.
+      emptyRestartsRef.current += 1
+      const heardSomething = Boolean(committedRef.current)
+
+      // Already have words and the user has gone quiet for a while: they are
+      // done talking. Stop cleanly — this is also how Safari behaves, where a
+      // session ends after every single utterance rather than on silence.
+      if (heardSomething && emptyRestartsRef.current > 3) {
+        wantsToListenRef.current = false
+        setIsListening(false)
+        return
       }
+
+      // Never heard anything at all: the engine is refusing to run rather than
+      // waiting on speech. Say so instead of spinning.
+      if (!heardSomething && emptyRestartsRef.current > 8) {
+        wantsToListenRef.current = false
+        setIsListening(false)
+        setMicError('The mic isn’t picking anything up. Check your browser’s mic permission, or type the task below.')
+        return
+      }
+
+      restartTimerRef.current = setTimeout(() => {
+        if (!wantsToListenRef.current) return
+        try {
+          recognition.start()
+        } catch {
+          // start() throws while the previous session is still tearing down.
+          // The next onend brings us back here.
+        }
+      }, 250)
     }
 
     recognition.onerror = (event) => {
@@ -132,6 +184,9 @@ export default function Record() {
     if (autoStartRef.current) {
       autoStartRef.current = false
       setMicError('')
+      committedRef.current = ''
+      sessionFinalRef.current = ''
+      emptyRestartsRef.current = 0
       wantsToListenRef.current = true
       try {
         recognition.start()
@@ -143,6 +198,7 @@ export default function Record() {
 
     return () => {
       wantsToListenRef.current = false
+      clearTimeout(restartTimerRef.current)
       recognition.onend = null
       recognition.stop()
       recognitionRef.current = null
@@ -151,6 +207,7 @@ export default function Record() {
 
   const stopListening = () => {
     wantsToListenRef.current = false
+    clearTimeout(restartTimerRef.current)
     recognitionRef.current?.stop()
     setIsListening(false)
   }
@@ -160,6 +217,9 @@ export default function Record() {
     if (!recognition) return
     setMicError('')
     setTranscript('')
+    committedRef.current = ''
+    sessionFinalRef.current = ''
+    emptyRestartsRef.current = 0
     wantsToListenRef.current = true
     try {
       recognition.start()

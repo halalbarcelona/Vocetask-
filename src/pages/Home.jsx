@@ -31,6 +31,7 @@ import { FilterIcon } from '../components/icons'
 import { matchesFilter } from '../utils/filters'
 import { parseQuickAddSyntax } from '../utils/quickAddSyntax'
 import { parseVoiceCommand } from '../utils/voiceParser'
+import OnboardingTour, { shouldShowOnboarding } from '../components/OnboardingTour'
 
 const PRIORITY_RANK = { high: 3, medium: 2, low: 1, none: 0 }
 
@@ -77,6 +78,7 @@ export default function Home() {
   const [categoryFilter, setCategoryFilter] = useState('All')
   const [labelFilter, setLabelFilter] = useState(null)
   const [activeFilterId, setActiveFilterId] = useState(null)
+  const [showOnboarding, setShowOnboarding] = useState(shouldShowOnboarding)
   const recognitionRef = useRef(null)
 
   useEffect(() => {
@@ -313,6 +315,8 @@ export default function Home() {
 
   return (
     <div className="screen">
+      {showOnboarding && <OnboardingTour onDone={() => setShowOnboarding(false)} />}
+
       <header className="page-header">
         <h1 className="page-header__title">Aura Task</h1>
         <div className="page-header__actions">

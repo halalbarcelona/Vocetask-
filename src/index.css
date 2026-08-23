@@ -1,7 +1,10 @@
 :root {
   --accent: #4b3fd4;
   --accent-dark: #3a30ad;
-  --accent-soft: #eceafb;
+  /* Derived from --accent rather than a fixed hex, so picking a custom accent
+     color in Settings retints every one of these automatically instead of
+     needing a hand-tuned value per preset per theme. */
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--surface));
   --bg: #fbfaf8;
   --surface: #ffffff;
   --text: #1a1a1f;
@@ -55,9 +58,9 @@
   --t-display: 28px;
   /* Accent-tinted glow, used only on the mic button — the one hero action.
      Tokenised per palette so it never stays the old blue when the accent moves. */
-  --accent-glow: rgba(75, 63, 212, 0.3);
-  --accent-ring: rgba(75, 63, 212, 0.4);
-  --accent-ring-0: rgba(75, 63, 212, 0);
+  --accent-glow: color-mix(in srgb, var(--accent) 30%, transparent);
+  --accent-ring: color-mix(in srgb, var(--accent) 40%, transparent);
+  --accent-ring-0: transparent;
   color-scheme: light;
 }
 
@@ -68,7 +71,7 @@
   :root:not([data-theme='light']) {
     --accent: #9b90f5;
     --accent-dark: #8074ee;
-    --accent-soft: #241f3d;
+    --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--surface));
     --bg: #121116;
     --surface: #1b1a20;
     --text: #f2f0ee;
@@ -86,9 +89,9 @@
     --on-accent: #0f1117;
     --toast-bg: #2a2f3a;
     --toast-text: #f0f2f6;
-    --accent-glow: rgba(155, 144, 245, 0.26);
-    --accent-ring: rgba(155, 144, 245, 0.34);
-    --accent-ring-0: rgba(155, 144, 245, 0);
+    --accent-glow: color-mix(in srgb, var(--accent) 30%, transparent);
+    --accent-ring: color-mix(in srgb, var(--accent) 40%, transparent);
+    --accent-ring-0: transparent;
     color-scheme: dark;
   }
 }
@@ -96,7 +99,7 @@
 :root[data-theme='dark'] {
   --accent: #9b90f5;
   --accent-dark: #8074ee;
-  --accent-soft: #241f3d;
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--surface));
   --bg: #121116;
   --surface: #1b1a20;
   --text: #f2f0ee;
@@ -114,9 +117,9 @@
   --on-accent: #0f1117;
   --toast-bg: #2a2f3a;
   --toast-text: #f0f2f6;
-  --accent-glow: rgba(155, 144, 245, 0.26);
-  --accent-ring: rgba(155, 144, 245, 0.34);
-  --accent-ring-0: rgba(155, 144, 245, 0);
+  --accent-glow: color-mix(in srgb, var(--accent) 30%, transparent);
+  --accent-ring: color-mix(in srgb, var(--accent) 40%, transparent);
+  --accent-ring-0: transparent;
   color-scheme: dark;
 }
 
@@ -2125,4 +2128,150 @@ a {
   font-size: var(--t-display);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+/* Accent color picker */
+.settings-row--stacked {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s2);
+}
+
+.accent-swatch-row {
+  display: flex;
+  gap: var(--s3);
+  flex-wrap: wrap;
+}
+
+.accent-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  box-shadow: 0 0 0 1px var(--border);
+  padding: 0;
+}
+
+.accent-swatch--active {
+  border-color: var(--surface);
+  box-shadow: 0 0 0 2px var(--text);
+}
+
+/* Toast entrance */
+.toast {
+  animation: toast-in 0.2s ease-out;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Empty-state icon */
+.empty-state__icon {
+  color: var(--text-faint);
+  margin-bottom: var(--s2);
+}
+
+/* Onboarding tour */
+.onboarding {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 20, 30, 0.55);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+  animation: onboarding-fade-in 0.2s ease-out;
+}
+
+@keyframes onboarding-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.onboarding__sheet {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  background: var(--surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: var(--s6) var(--s5) var(--s5);
+  text-align: center;
+  animation: onboarding-slide-up 0.25s ease-out;
+}
+
+@keyframes onboarding-slide-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.onboarding__skip {
+  position: absolute;
+  top: var(--s4);
+  right: var(--s4);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.onboarding__icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--s4);
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onboarding__title {
+  font-size: var(--t-xl);
+  font-weight: 700;
+  margin: 0 0 var(--s2);
+}
+
+.onboarding__body {
+  font-size: var(--t-md);
+  color: var(--text-muted);
+  margin: 0 0 var(--s5);
+}
+
+.onboarding__dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--s2);
+  margin-bottom: var(--s5);
+}
+
+.onboarding__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  background: var(--border-strong);
+}
+
+.onboarding__dot--active {
+  background: var(--accent);
+  width: 20px;
 }

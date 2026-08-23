@@ -3,7 +3,7 @@ import { useTasksContext } from '../hooks/TasksContext'
 import { useTemplates } from '../hooks/useTemplates'
 import { usePremiumContext } from '../hooks/PremiumContext'
 import LockedOverlay from '../components/LockedOverlay'
-import { BackIcon, TrashIcon } from '../components/icons'
+import { BackIcon, LayersIcon, TrashIcon } from '../components/icons'
 import { todayISO } from '../utils/dateUtils'
 
 export default function Templates() {
@@ -40,6 +40,7 @@ export default function Templates() {
 
         {templates.length === 0 ? (
           <div className="empty-state">
+            <LayersIcon width={28} height={28} className="empty-state__icon" />
             <p>No templates yet.</p>
             <p className="empty-state__hint">
               Fill in a task, then tap "Save as Template" before saving it.

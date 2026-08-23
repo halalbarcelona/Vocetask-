@@ -208,6 +208,7 @@ export default function Filters() {
             <>
               {filters.length === 0 ? (
                 <div className="empty-state">
+                  <FilterIcon width={28} height={28} className="empty-state__icon" />
                   <p>No filters yet.</p>
                   <p className="empty-state__hint">Build one from your lists, labels, priority and due date.</p>
                 </div>

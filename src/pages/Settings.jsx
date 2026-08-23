@@ -7,6 +7,7 @@ import { useAccountContext } from '../hooks/AccountContext'
 import { useTasksContext } from '../hooks/TasksContext'
 import { useNotifications } from '../hooks/useNotifications'
 import { useTheme } from '../hooks/useTheme'
+import { useAccentContext } from '../hooks/AccentContext'
 import { useVoiceLang, VOICE_LANGS } from '../hooks/useVoiceLang'
 import { downloadICS } from '../utils/icsExport'
 import { exportTasksJSON, parseBackupFile } from '../utils/backup'
@@ -38,6 +39,7 @@ export default function Settings() {
   const { tasks, importTasks } = useTasksContext()
   const notifications = useNotifications(tasks)
   const { theme, setTheme } = useTheme()
+  const { accent, setAccent, presets } = useAccentContext()
   const { lang: voiceLang, setLang: setVoiceLang } = useVoiceLang()
   const [calendarSync, setCalendarSync] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
@@ -165,6 +167,23 @@ export default function Settings() {
                     {option.icon}
                     {option.label}
                   </button>
+                ))}
+              </div>
+            </div>
+            <div className="settings-row settings-row--stacked">
+              <span>Accent color</span>
+              <div className="accent-swatch-row">
+                {presets.map((preset) => (
+                  <button
+                    key={preset.value}
+                    type="button"
+                    className={`accent-swatch${accent === preset.value ? ' accent-swatch--active' : ''}`}
+                    style={{ background: preset.swatch }}
+                    onClick={() => setAccent(preset.value)}
+                    aria-pressed={accent === preset.value}
+                    aria-label={preset.label}
+                    title={preset.label}
+                  />
                 ))}
               </div>
             </div>

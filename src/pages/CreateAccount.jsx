@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAccountContext } from '../hooks/AccountContext'
 import { UserIcon } from '../components/icons'
+import { markAccountJustCreated } from '../components/OnboardingTour'
 
 export default function CreateAccount() {
   const navigate = useNavigate()
@@ -15,6 +16,7 @@ export default function CreateAccount() {
     e.preventDefault()
     if (!canSubmit) return
     createAccount({ name, email })
+    markAccountJustCreated()
     navigate('/', { replace: true })
   }
 

@@ -6,6 +6,7 @@ import { AccountProvider, useAccountContext } from './hooks/AccountContext'
 import { CategoriesProvider } from './hooks/CategoriesContext'
 import { LabelsProvider } from './hooks/LabelsContext'
 import { FiltersProvider } from './hooks/FiltersContext'
+import { AccentProvider } from './hooks/AccentContext'
 import Home from './pages/Home'
 import Record from './pages/Record'
 import Confirm from './pages/Confirm'
@@ -47,39 +48,41 @@ function PremiumBackendSync() {
 export default function App() {
   return (
     <AccountProvider>
-      <PremiumProvider>
-        <PremiumBackendSync />
-        <TasksProvider>
-          <CategoriesProvider>
-            <LabelsProvider>
-              <FiltersProvider>
-                <Routes>
-                  <Route path="/create-account" element={<CreateAccount />} />
-                  <Route element={<RequireAccount />}>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/record" element={<Record />} />
-                    <Route path="/confirm" element={<Confirm />} />
-                    <Route path="/calendar" element={<Calendar />} />
-                    <Route path="/settings" element={<Settings />} />
-                    <Route path="/account" element={<AccountSettings />} />
-                    <Route path="/privacy" element={<Privacy />} />
-                    <Route path="/upgrade" element={<Upgrade />} />
-                    <Route path="/upgrade-success" element={<UpgradeSuccess />} />
-                    <Route path="/stats" element={<Stats />} />
-                    <Route path="/templates" element={<Templates />} />
-                    <Route path="/trial-ended" element={<TrialEnded />} />
-                    <Route path="/voice-test" element={<VoiceTest />} />
-                    <Route path="/filters" element={<Filters />} />
-                    <Route path="/share-target" element={<ShareTarget />} />
-                    <Route path="/upcoming" element={<Upcoming />} />
-                    <Route path="/focus" element={<Focus />} />
-                  </Route>
-                </Routes>
-              </FiltersProvider>
-            </LabelsProvider>
-          </CategoriesProvider>
-        </TasksProvider>
-      </PremiumProvider>
+      <AccentProvider>
+        <PremiumProvider>
+          <PremiumBackendSync />
+          <TasksProvider>
+            <CategoriesProvider>
+              <LabelsProvider>
+                <FiltersProvider>
+                  <Routes>
+                    <Route path="/create-account" element={<CreateAccount />} />
+                    <Route element={<RequireAccount />}>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/record" element={<Record />} />
+                      <Route path="/confirm" element={<Confirm />} />
+                      <Route path="/calendar" element={<Calendar />} />
+                      <Route path="/settings" element={<Settings />} />
+                      <Route path="/account" element={<AccountSettings />} />
+                      <Route path="/privacy" element={<Privacy />} />
+                      <Route path="/upgrade" element={<Upgrade />} />
+                      <Route path="/upgrade-success" element={<UpgradeSuccess />} />
+                      <Route path="/stats" element={<Stats />} />
+                      <Route path="/templates" element={<Templates />} />
+                      <Route path="/trial-ended" element={<TrialEnded />} />
+                      <Route path="/voice-test" element={<VoiceTest />} />
+                      <Route path="/filters" element={<Filters />} />
+                      <Route path="/share-target" element={<ShareTarget />} />
+                      <Route path="/upcoming" element={<Upcoming />} />
+                      <Route path="/focus" element={<Focus />} />
+                    </Route>
+                  </Routes>
+                </FiltersProvider>
+              </LabelsProvider>
+            </CategoriesProvider>
+          </TasksProvider>
+        </PremiumProvider>
+      </AccentProvider>
     </AccountProvider>
   )
 }

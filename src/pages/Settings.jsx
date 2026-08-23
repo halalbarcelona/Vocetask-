@@ -7,6 +7,7 @@ import { useAccountContext } from '../hooks/AccountContext'
 import { useTasksContext } from '../hooks/TasksContext'
 import { useNotifications } from '../hooks/useNotifications'
 import { useTheme } from '../hooks/useTheme'
+import { useVoiceLang, VOICE_LANGS } from '../hooks/useVoiceLang'
 import { downloadICS } from '../utils/icsExport'
 import { exportTasksJSON, parseBackupFile } from '../utils/backup'
 import { buildTodaySummary, shareText } from '../utils/share'
@@ -31,11 +32,13 @@ function PremiumRow({ isPremium, label, onClick }) {
 
 export default function Settings() {
   const navigate = useNavigate()
-  const { isPremium, isPaid, trialActive, trialDaysLeft } = usePremiumContext()
+  const { isPremium, isPaid, trialActive, trialDaysLeft, trialAvailable, trialDays, startTrial } =
+    usePremiumContext()
   const { account } = useAccountContext()
   const { tasks, importTasks } = useTasksContext()
   const notifications = useNotifications(tasks)
   const { theme, setTheme } = useTheme()
+  const { lang: voiceLang, setLang: setVoiceLang } = useVoiceLang()
   const [calendarSync, setCalendarSync] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
   const importInputRef = useRef(null)
@@ -105,19 +108,27 @@ export default function Settings() {
                 ? 'Premium — lifetime'
                 : trialActive
                   ? `Premium trial — ${trialDaysLeft} day${trialDaysLeft === 1 ? '' : 's'} left`
-                  : 'You’re on Free'}
+                  : trialAvailable
+                    ? `${trialDays} days of Premium, free`
+                    : 'You’re on Free'}
             </p>
             <p className="upgrade-banner__subtitle">
               {isPaid
                 ? 'Paid once. Every feature, forever.'
                 : trialActive
                   ? 'Keep every feature for one payment'
-                  : 'One-time payment — no subscription'}
+                  : trialAvailable
+                    ? 'No card needed'
+                    : 'One-time payment — no subscription'}
             </p>
           </div>
           {!isPaid && (
-            <button type="button" className="button button--light" onClick={() => navigate('/upgrade')}>
-              {trialActive ? 'Keep it' : 'Upgrade'}
+            <button
+              type="button"
+              className="button button--light"
+              onClick={() => (trialAvailable ? startTrial() : navigate('/upgrade'))}
+            >
+              {trialActive ? 'Keep it' : trialAvailable ? 'Start' : 'Upgrade'}
             </button>
           )}
         </div>
@@ -152,6 +163,23 @@ export default function Settings() {
                     aria-pressed={theme === option.value}
                   >
                     {option.icon}
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="settings-row">
+              <span>Voice language</span>
+              <div className="theme-row">
+                {VOICE_LANGS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={`theme-chip${voiceLang === option.value ? ' theme-chip--active' : ''}`}
+                    onClick={() => setVoiceLang(option.value)}
+                    aria-pressed={voiceLang === option.value}
+                    title={option.hint}
+                  >
                     {option.label}
                   </button>
                 ))}

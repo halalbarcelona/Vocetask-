@@ -21,6 +21,8 @@ import { isDueOn, isOverdue } from '../utils/recurrence'
 import { computeStreak } from '../utils/stats'
 import { speakDailyRecap } from '../utils/speak'
 import { checkMilestone } from '../utils/milestones'
+import { fixSpeech } from '../utils/speechFix'
+import { useVoiceLang } from '../hooks/useVoiceLang'
 
 const PRIORITY_RANK = { high: 3, medium: 2, low: 1, none: 0 }
 
@@ -52,6 +54,7 @@ export default function Home() {
     bulkMarkDone,
   } = useTasksContext()
   const { isPremium, isPaid, trialActive, trialExpired, trialDaysLeft } = usePremiumContext()
+  const { lang: voiceLang } = useVoiceLang()
   const { toast, showToast, dismissToast } = useToast()
   const [query, setQuery] = useState('')
   const [sortByPriority, setSortByPriority] = useState(false)
@@ -219,11 +222,12 @@ export default function Home() {
       return
     }
     const recognition = new SpeechRecognitionAPI()
-    recognition.lang = 'en-IN'
+    recognition.lang = voiceLang
     recognition.interimResults = false
     recognition.onresult = (event) => {
-      const text = event.results[0]?.[0]?.transcript ?? ''
-      setQuery(text)
+      // Search matches against saved titles, so the repaired transcript is what
+      // we want here too — "9 budget gym" should find "Gym".
+      setQuery(fixSpeech(event.results[0]?.[0]?.transcript ?? ''))
     }
     recognition.onend = () => setListening(false)
     recognition.onerror = () => setListening(false)

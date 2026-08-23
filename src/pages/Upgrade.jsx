@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BackIcon, CheckIcon, LockIcon, MicIcon } from '../components/icons'
+import { BackIcon, CheckIcon, LockIcon, MicIcon, SparkIcon } from '../components/icons'
 import { useAccountContext } from '../hooks/AccountContext'
 import { usePremiumContext } from '../hooks/PremiumContext'
 import { useTasksContext } from '../hooks/TasksContext'
@@ -60,7 +60,7 @@ export default function Upgrade() {
   const stripeReady = useStripeBuyButtonScript()
   const { account } = useAccountContext()
   const { tasks } = useTasksContext()
-  const { trialActive, trialDaysLeft } = usePremiumContext()
+  const { trialActive, trialDaysLeft, trialAvailable, trialDays, startTrial } = usePremiumContext()
   const reason = pickUpsellReason(tasks)
 
   return (
@@ -79,7 +79,11 @@ export default function Upgrade() {
             <MicIcon width={28} height={28} />
           </div>
           <h2 className="paywall-hero__title">
-            {trialActive ? `Keep Premium after day ${7 - trialDaysLeft + 1}` : 'Unlock everything, once'}
+            {trialActive
+              ? `Keep Premium after day ${trialDays - trialDaysLeft + 1}`
+              : trialAvailable
+                ? `Try Premium free for ${trialDays} days`
+                : 'Unlock everything, once'}
           </h2>
           <p className="paywall-hero__subtitle">
             Tasks are always unlimited and free. Premium adds the depth — recurring tasks, subtasks,
@@ -87,6 +91,27 @@ export default function Upgrade() {
           </p>
           <p className="paywall-hero__badge">One-time payment · Yours forever · No subscription</p>
         </div>
+
+        {trialAvailable && (
+          <div className="trial-offer">
+            <p className="trial-offer__title">
+              <SparkIcon width={15} height={15} /> {trialDays} days of Premium, free
+            </p>
+            <p className="trial-offer__body">
+              No card, no reminders to cancel — it just goes back to Free when the {trialDays} days are up.
+            </p>
+            <button
+              type="button"
+              className="button button--primary button--wide"
+              onClick={() => {
+                startTrial()
+                navigate('/')
+              }}
+            >
+              Start my free trial
+            </button>
+          </div>
+        )}
 
         <div className="card upsell-card">
           <p className="upsell-card__feature">

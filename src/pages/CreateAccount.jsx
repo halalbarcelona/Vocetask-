@@ -25,7 +25,9 @@ export default function CreateAccount() {
           <UserIcon />
         </div>
         <h1 className="paywall-hero__title">Welcome to Aura Task</h1>
-        <p className="paywall-hero__subtitle">Create your account to start adding tasks.</p>
+        <p className="paywall-hero__subtitle">
+          Create your account and every Premium feature is yours free for 7 days — no card needed.
+        </p>
 
         <form className="card confirm-card" style={{ width: '100%', textAlign: 'left' }} onSubmit={handleSubmit}>
           <label className="field">
@@ -53,7 +55,7 @@ export default function CreateAccount() {
           </label>
 
           <button type="submit" className="button button--primary button--wide" disabled={!canSubmit}>
-            Create Account
+            Create account
           </button>
         </form>
 

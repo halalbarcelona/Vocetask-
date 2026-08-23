@@ -61,6 +61,17 @@ export function usePremium() {
   const trialDaysLeft = daysLeftFrom(trialStart)
   const trialActive = Boolean(trialStart) && trialDaysLeft > 0
   const trialExpired = Boolean(trialStart) && trialDaysLeft <= 0
+  // Nobody gets a second one. Anyone who has never had a trial can still be
+  // offered it — accounts made before the trial existed, mainly.
+  const trialAvailable = !trialStart && !isPaid
+
+  // Same one-shot stamp the account flow writes, exposed so the paywall can
+  // offer the trial as a real choice instead of it only ever happening
+  // silently at signup.
+  const startTrial = useCallback(() => {
+    beginTrialIfUnstarted()
+    setTrialStart(loadTrialStart())
+  }, [])
 
   const activatePremium = useCallback(() => setIsPaid(true), [])
   const deactivatePremium = useCallback(() => setIsPaid(false), [])
@@ -92,7 +103,10 @@ export function usePremium() {
     isPaid,
     trialActive,
     trialExpired,
+    trialAvailable,
     trialDaysLeft,
+    trialDays: TRIAL_DAYS,
+    startTrial,
     activatePremium,
     deactivatePremium,
     syncFromBackend,

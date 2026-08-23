@@ -222,6 +222,22 @@ export default function Settings() {
         </section>
 
         <section className="settings-group">
+          <h2 className="section-title">Plan ahead</h2>
+          <div className="card">
+            <PremiumRow
+              isPremium={isPremium}
+              label="Upcoming — the next 7 days"
+              onClick={() => (isPremium ? navigate('/upcoming') : navigate('/upgrade'))}
+            />
+            <PremiumRow
+              isPremium={isPremium}
+              label="Focus timer"
+              onClick={() => (isPremium ? navigate('/focus') : navigate('/upgrade'))}
+            />
+          </div>
+        </section>
+
+        <section className="settings-group">
           <h2 className="section-title">Data</h2>
           <div className="card">
             <PremiumRow

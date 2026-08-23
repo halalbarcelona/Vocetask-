@@ -22,6 +22,8 @@ import TrialEnded from './pages/TrialEnded'
 import VoiceTest from './pages/VoiceTest'
 import Filters from './pages/Filters'
 import ShareTarget from './pages/ShareTarget'
+import Upcoming from './pages/Upcoming'
+import Focus from './pages/Focus'
 
 function RequireAccount() {
   const { hasAccount } = useAccountContext()
@@ -69,6 +71,8 @@ export default function App() {
                     <Route path="/voice-test" element={<VoiceTest />} />
                     <Route path="/filters" element={<Filters />} />
                     <Route path="/share-target" element={<ShareTarget />} />
+                    <Route path="/upcoming" element={<Upcoming />} />
+                    <Route path="/focus" element={<Focus />} />
                   </Route>
                 </Routes>
               </FiltersProvider>

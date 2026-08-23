@@ -4,6 +4,7 @@ import LabelChip from './LabelChip'
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon, PencilIcon, RepeatIcon, TrashIcon } from './icons'
 import { formatTimeLabel, todayISO, tomorrowISO } from '../utils/dateUtils'
 import { useLabelsContext } from '../hooks/LabelsContext'
+import { formatDuration } from '../utils/duration'
 
 export default function TaskItem({
   task,
@@ -72,6 +73,10 @@ export default function TaskItem({
           <p className="task-card__meta">
             {task.time && <span className="task-card__meta-item">{formatTimeLabel(task.time)}</span>}
             {task.time && <span className="task-card__meta-dot">·</span>}
+            {task.durationMinutes > 0 && (
+              <span className="task-card__meta-item">{formatDuration(task.durationMinutes)}</span>
+            )}
+            {task.durationMinutes > 0 && <span className="task-card__meta-dot">·</span>}
             <CategoryChip category={task.category} />
             {labels.length > 0 && <span className="task-card__meta-dot">·</span>}
             {labels.slice(0, 3).map((name) => (

@@ -8,6 +8,7 @@ import { useTemplates } from '../hooks/useTemplates'
 import CategoryChip from '../components/CategoryChip'
 import LabelChip from '../components/LabelChip'
 import { BackIcon, LockIcon, PlusIcon, TrashIcon } from '../components/icons'
+import { DURATION_OPTIONS } from '../utils/duration'
 
 const RECURRENCE_OPTIONS = [
   { value: 'none', label: 'One-time' },
@@ -148,6 +149,14 @@ export default function Confirm() {
       return
     }
     updateDraft({ priority: value })
+  }
+
+  const handleSelectDuration = (value) => {
+    if (value !== 0 && !isPremium) {
+      navigate('/upgrade')
+      return
+    }
+    updateDraft({ durationMinutes: value })
   }
 
   const handleAddCategory = () => {
@@ -316,6 +325,22 @@ export default function Confirm() {
                   type="button"
                   className={`priority-chip priority-chip--${option.value}${draftTask.priority === option.value || (!draftTask.priority && option.value === 'none') ? ' priority-chip--selected' : ''}${option.value !== 'none' && !isPremium ? ' priority-chip--locked' : ''}`}
                   onClick={() => handleSelectPriority(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="field">
+            <PremiumLabel isPremium={isPremium}>Duration</PremiumLabel>
+            <div className="chip-row">
+              {DURATION_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`priority-chip${(draftTask.durationMinutes ?? 0) === option.value ? ' priority-chip--selected' : ''}${option.value !== 0 && !isPremium ? ' priority-chip--locked' : ''}`}
+                  onClick={() => handleSelectDuration(option.value)}
                 >
                   {option.label}
                 </button>

@@ -2090,3 +2090,39 @@ a {
   font-weight: 600;
   color: var(--text-muted);
 }
+
+/* Upcoming */
+.upcoming-day__load {
+  font-size: var(--t-sm);
+  color: var(--text-faint);
+}
+
+/* Focus timer */
+.focus-ring {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: var(--s6) 0;
+}
+
+.focus-ring__track {
+  fill: none;
+  stroke: var(--track);
+  stroke-width: 10;
+}
+
+.focus-ring__progress {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.2s linear;
+}
+
+.focus-ring__time {
+  position: absolute;
+  font-size: var(--t-display);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}

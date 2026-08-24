@@ -100,7 +100,7 @@ export default function Settings() {
         </div>
 
         <p className="trust-badge">
-          <LockIcon width={13} height={13} /> Your tasks stay on this device — nothing is uploaded.
+          <LockIcon width={13} height={13} /> Your tasks stay on this device — never uploaded.
         </p>
 
         <div className={`upgrade-banner${isPremium ? ' upgrade-banner--premium' : ''}`}>

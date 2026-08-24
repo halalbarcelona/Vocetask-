@@ -33,6 +33,7 @@ const FEATURES = [
   { label: 'Productivity report', free: '—', premium: 'Included' },
   { label: 'Backup & restore (.json)', free: '—', premium: 'Included' },
   { label: 'Share today’s list', free: '—', premium: 'Included' },
+  { label: 'Sync across devices', free: '—', premium: 'Included' },
   { label: 'Support', free: '—', premium: 'Priority' },
 ]
 

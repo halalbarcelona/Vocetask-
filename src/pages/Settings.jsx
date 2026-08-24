@@ -267,6 +267,11 @@ export default function Settings() {
             <PremiumRow isPremium={isPremium} label="Backup tasks (.json)" onClick={handleBackup} />
             <PremiumRow isPremium={isPremium} label="Restore from backup" onClick={handleRestoreClick} />
             <PremiumRow isPremium={isPremium} label="Share today’s list" onClick={handleShareToday} />
+            <PremiumRow
+              isPremium={isPremium}
+              label="Sync across devices"
+              onClick={() => (isPremium ? navigate('/sync') : navigate('/upgrade'))}
+            />
             <input
               ref={importInputRef}
               type="file"

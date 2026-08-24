@@ -1,7 +1,14 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { todayISO } from '../utils/dateUtils'
+import { supabase, supabaseConfigured } from '../lib/supabaseClient'
+import { buildSnapshot, diffForPush, mergeRemoteIntoLocal, snapshotKey } from '../utils/sync'
 
 const STORAGE_KEY = 'aura-tasks'
+const SNAPSHOT_KEY = 'aura-sync-snapshot'
+// Debounces the push side of sync so a burst of local changes (bulk actions,
+// undo-then-redo) coalesces into one network round trip reflecting the final
+// state, rather than one call per intermediate change.
+const PUSH_DEBOUNCE_MS = 800
 
 // Fills in every field a task is expected to have. Data can arrive from an
 // older build, a hand-edited backup, or a restore of a file we didn't write —
@@ -44,6 +51,68 @@ function loadTasks() {
   }
 }
 
+function loadSnapshot() {
+  try {
+    const raw = localStorage.getItem(SNAPSHOT_KEY)
+    const parsed = raw ? JSON.parse(raw) : null
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
+// Local (camelCase) <-> remote (snake_case) row shape. Kept as plain data
+// conversion, no I/O — the actual network calls live in useTasks below.
+function toRemoteRow(task, userId) {
+  return {
+    id: task.id,
+    user_id: userId,
+    title: task.title,
+    date: task.date,
+    time: task.time,
+    category: task.category,
+    done: task.done,
+    created_at: task.createdAt,
+    order_key: task.order,
+    recurrence: task.recurrence,
+    recurrence_days: task.recurrenceDays,
+    completed_dates: task.completedDates,
+    subtasks: task.subtasks,
+    priority: task.priority,
+    notes: task.notes,
+    reminder_lead_minutes: task.reminderLeadMinutes,
+    labels: task.labels,
+    section: task.section,
+    duration_minutes: task.durationMinutes,
+  }
+}
+
+function fromRemoteRow(row) {
+  return {
+    ...normalizeTask({
+      id: row.id,
+      title: row.title,
+      date: row.date,
+      time: row.time,
+      category: row.category,
+      done: row.done,
+      createdAt: row.created_at,
+      order: row.order_key,
+      recurrence: row.recurrence,
+      recurrenceDays: row.recurrence_days,
+      completedDates: row.completed_dates,
+      subtasks: row.subtasks,
+      priority: row.priority,
+      notes: row.notes,
+      reminderLeadMinutes: row.reminder_lead_minutes,
+      labels: row.labels,
+      section: row.section,
+      durationMinutes: row.duration_minutes,
+    }),
+    _remoteUpdatedAt: row.updated_at,
+  }
+}
+
 function generateId() {
   return typeof crypto !== 'undefined' && crypto.randomUUID
     ? crypto.randomUUID()
@@ -56,13 +125,119 @@ function defaultOrder(time) {
   return h * 60 + m
 }
 
-export function useTasks() {
+// userId is optional. Without it (the default — no account has signed in to
+// sync), this hook behaves exactly as it always has: local-only, no network
+// calls of any kind. Passing a signed-in user's id turns on a pull-on-sign-in
+// + debounced-push-on-every-change sync loop against Supabase, additive to
+// the existing local persistence, which keeps working unchanged as the
+// offline cache either way.
+export function useTasks(userId) {
   const [tasks, setTasks] = useState(loadTasks)
   const [draftTask, setDraftTask] = useState(null)
+  const [syncStatus, setSyncStatus] = useState('idle') // idle | syncing | synced | error
+  const [syncError, setSyncError] = useState('')
+  const tasksRef = useRef(tasks)
+  const snapshotRef = useRef(loadSnapshot())
+  const pushTimerRef = useRef(null)
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks))
+    tasksRef.current = tasks
   }, [tasks])
+
+  const persistSnapshot = useCallback((next) => {
+    snapshotRef.current = next
+    try {
+      localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(next))
+    } catch {
+      // Non-fatal — worst case the next cycle re-derives it from scratch,
+      // which just costs a few redundant upserts, not correctness.
+    }
+  }, [])
+
+  // Pulls this user's rows, merges them against the current local list (see
+  // utils/sync.js for the merge rule), and adopts the result as the new
+  // local state. Runs once per sign-in — catching remote changes made while
+  // this device was closed is what "open the app" is for; a second device
+  // left open at the same time needs its own reopen to see updates too,
+  // since there's no realtime subscription in this first version.
+  const pullAndMerge = useCallback(async () => {
+    if (!userId || !supabaseConfigured) return
+    setSyncStatus('syncing')
+    try {
+      const { data, error } = await supabase.from('tasks').select('*').eq('user_id', userId)
+      if (error) throw error
+      const rows = data ?? []
+      const remoteTasks = rows.map(fromRemoteRow)
+      const merged = mergeRemoteIntoLocal(tasksRef.current, remoteTasks, snapshotRef.current)
+      const remoteUpdatedAtById = Object.fromEntries(rows.map((row) => [row.id, row.updated_at]))
+      // Snapshot is written before setTasks so the debounced push effect
+      // that fires from this same state change sees the post-merge snapshot,
+      // not the pre-pull one — otherwise it would immediately re-upload
+      // whatever the merge just adopted from the server.
+      persistSnapshot(buildSnapshot(merged, remoteUpdatedAtById))
+      setTasks(merged)
+      setSyncStatus('synced')
+      setSyncError('')
+    } catch (err) {
+      setSyncStatus('error')
+      setSyncError(err?.message ?? 'Sync failed')
+    }
+  }, [userId, persistSnapshot])
+
+  const pushChanges = useCallback(
+    async (currentTasks) => {
+      if (!userId || !supabaseConfigured) return
+      const { upserts, deletes } = diffForPush(currentTasks, snapshotRef.current)
+      if (upserts.length === 0 && deletes.length === 0) return
+
+      setSyncStatus('syncing')
+      try {
+        if (upserts.length > 0) {
+          const { data, error } = await supabase
+            .from('tasks')
+            .upsert(
+              upserts.map((task) => toRemoteRow(task, userId)),
+              { onConflict: 'id' },
+            )
+            .select('id, updated_at')
+          if (error) throw error
+          const next = { ...snapshotRef.current }
+          for (const row of data ?? []) {
+            const task = currentTasks.find((t) => t.id === row.id)
+            if (task) next[row.id] = { remoteUpdatedAt: row.updated_at, localJSON: snapshotKey(task) }
+          }
+          persistSnapshot(next)
+        }
+        if (deletes.length > 0) {
+          const { error } = await supabase.from('tasks').delete().in('id', deletes)
+          if (error) throw error
+          const next = { ...snapshotRef.current }
+          for (const id of deletes) delete next[id]
+          persistSnapshot(next)
+        }
+        setSyncStatus('synced')
+        setSyncError('')
+      } catch (err) {
+        setSyncStatus('error')
+        setSyncError(err?.message ?? 'Sync failed')
+      }
+    },
+    [userId, persistSnapshot],
+  )
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (userId) pullAndMerge()
+  }, [userId])
+
+  useEffect(() => {
+    if (!userId) return undefined
+    clearTimeout(pushTimerRef.current)
+    pushTimerRef.current = setTimeout(() => pushChanges(tasks), PUSH_DEBOUNCE_MS)
+    return () => clearTimeout(pushTimerRef.current)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks, userId])
 
   const addTask = useCallback((task) => {
     const newTask = {
@@ -221,5 +396,8 @@ export function useTasks() {
     importTasks,
     bulkRemoveTasks,
     bulkMarkDone,
+    syncStatus,
+    syncError,
+    syncNow: pullAndMerge,
   }
 }

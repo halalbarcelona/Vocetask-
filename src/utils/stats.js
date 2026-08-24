@@ -1,4 +1,5 @@
 import { toISODate } from './dateUtils'
+import { isDueOn } from './recurrence'
 
 function completionDatesSet(tasks) {
   const dates = new Set()
@@ -68,6 +69,47 @@ export function completionRate(tasks, days = 7) {
     cursor.setDate(cursor.getDate() - 1)
   }
   return Math.round((hit / days) * 100)
+}
+
+// Per-habit versions of computeStreak/completionRate below — a single
+// recurring task's own run, rather than "was anything at all done that day"
+// across the whole list. A one-off task has no habit streak, so callers
+// should only call these for tasks with recurrence !== 'none'.
+export function habitStreak(task) {
+  const dates = new Set(task.completedDates ?? [])
+  if (dates.size === 0) return 0
+
+  const cursor = new Date()
+  if (!dates.has(toISODate(cursor))) {
+    cursor.setDate(cursor.getDate() - 1)
+    if (!dates.has(toISODate(cursor))) return 0
+  }
+
+  let streak = 0
+  while (dates.has(toISODate(cursor))) {
+    streak += 1
+    cursor.setDate(cursor.getDate() - 1)
+  }
+  return streak
+}
+
+// % of the days this habit was actually due, in the last `days` days, that
+// it got done — due-days only, so a weekly habit isn't punished for the six
+// days a week it was never scheduled on.
+export function habitCompletionRate(task, days = 7) {
+  const dates = new Set(task.completedDates ?? [])
+  const cursor = new Date()
+  let due = 0
+  let done = 0
+  for (let i = 0; i < days; i++) {
+    const iso = toISODate(cursor)
+    if (isDueOn(task, iso)) {
+      due += 1
+      if (dates.has(iso)) done += 1
+    }
+    cursor.setDate(cursor.getDate() - 1)
+  }
+  return due === 0 ? 0 : Math.round((done / due) * 100)
 }
 
 // Counts tasks per category (all tasks, not just today's).

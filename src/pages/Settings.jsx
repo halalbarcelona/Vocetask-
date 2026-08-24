@@ -248,6 +248,11 @@ export default function Settings() {
             />
             <PremiumRow
               isPremium={isPremium}
+              label="Habit tracking"
+              onClick={() => (isPremium ? navigate('/habits') : navigate('/upgrade'))}
+            />
+            <PremiumRow
+              isPremium={isPremium}
               label={t('taskTemplates')}
               onClick={() => (isPremium ? navigate('/templates') : navigate('/upgrade'))}
             />

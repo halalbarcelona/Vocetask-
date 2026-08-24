@@ -1403,6 +1403,20 @@ a {
   flex-shrink: 0;
 }
 
+.suggestion-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  align-self: flex-start;
+  border: 1px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: var(--radius-full, 999px);
+  padding: var(--s2) var(--s3);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
 .voice-note-row {
   display: flex;
   align-items: center;
@@ -1413,6 +1427,46 @@ a {
   flex: 1;
   height: 36px;
   min-width: 0;
+}
+
+/* Habits page */
+.habit-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.habit-card__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+}
+
+.habit-card__title {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  font-weight: 600;
+}
+
+.habit-card__recurrence {
+  font-size: var(--t-sm);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.habit-card__stats {
+  display: flex;
+  gap: var(--s3);
+  font-size: var(--t-sm);
+  color: var(--text-muted);
+}
+
+.habit-card__stat {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
 }
 
 /* Templates page */

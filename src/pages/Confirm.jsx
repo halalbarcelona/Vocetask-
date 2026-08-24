@@ -7,9 +7,11 @@ import { useLabelsContext } from '../hooks/LabelsContext'
 import { useTemplates } from '../hooks/useTemplates'
 import CategoryChip from '../components/CategoryChip'
 import LabelChip from '../components/LabelChip'
-import { BackIcon, LockIcon, MicIcon, PlusIcon, StopIcon, TrashIcon } from '../components/icons'
+import { BackIcon, LockIcon, MicIcon, PlusIcon, SparkIcon, StopIcon, TrashIcon } from '../components/icons'
 import { DURATION_OPTIONS } from '../utils/duration'
 import { useVoiceRecorder } from '../hooks/useVoiceRecorder'
+import { suggestSlot } from '../utils/schedule'
+import { formatTimeLabel, todayISO } from '../utils/dateUtils'
 
 const RECURRENCE_OPTIONS = [
   { value: 'none', label: 'One-time' },
@@ -107,6 +109,18 @@ export default function Confirm() {
     const inSameCategory = tasks.filter((t) => t.category === draftTask.category && t.section)
     return [...new Set(inSameCategory.map((t) => t.section))]
   }, [tasks, draftTask.category])
+
+  // Only worth suggesting once there's a date and a duration to fit — a
+  // task with no length has nothing to schedule around.
+  const suggestedTime = useMemo(() => {
+    if (!draftTask.date || !draftTask.durationMinutes) return null
+    const now = new Date()
+    const notBefore = draftTask.date === todayISO() ? now.getHours() * 60 + now.getMinutes() : 0
+    return suggestSlot(tasks, draftTask.date, draftTask.durationMinutes, {
+      excludeTaskId: draftTask.id,
+      notBefore,
+    })
+  }, [tasks, draftTask.date, draftTask.durationMinutes, draftTask.id])
 
   const draftLabels = draftTask.labels ?? []
 
@@ -261,6 +275,16 @@ export default function Confirm() {
               />
             </label>
           </div>
+
+          {suggestedTime && suggestedTime !== draftTask.time && (
+            <button
+              type="button"
+              className="suggestion-chip"
+              onClick={() => updateDraft({ time: suggestedTime })}
+            >
+              <SparkIcon width={13} height={13} /> Suggested: {formatTimeLabel(suggestedTime)} — next free slot
+            </button>
+          )}
 
           <div className="field">
             <span className="field__label">Category</span>

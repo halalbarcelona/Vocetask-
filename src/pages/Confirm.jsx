@@ -7,8 +7,9 @@ import { useLabelsContext } from '../hooks/LabelsContext'
 import { useTemplates } from '../hooks/useTemplates'
 import CategoryChip from '../components/CategoryChip'
 import LabelChip from '../components/LabelChip'
-import { BackIcon, LockIcon, PlusIcon, TrashIcon } from '../components/icons'
+import { BackIcon, LockIcon, MicIcon, PlusIcon, StopIcon, TrashIcon } from '../components/icons'
 import { DURATION_OPTIONS } from '../utils/duration'
+import { useVoiceRecorder } from '../hooks/useVoiceRecorder'
 
 const RECURRENCE_OPTIONS = [
   { value: 'none', label: 'One-time' },
@@ -69,6 +70,7 @@ export default function Confirm() {
   const { categories, addCategory } = useCategoriesContext()
   const { labels, addLabel } = useLabelsContext()
   const { saveTemplate } = useTemplates()
+  const recorder = useVoiceRecorder()
   const [subtaskInput, setSubtaskInput] = useState('')
   const [templateSaved, setTemplateSaved] = useState(false)
   const [newLabelInput, setNewLabelInput] = useState('')
@@ -76,6 +78,10 @@ export default function Confirm() {
   useEffect(() => {
     if (!draftTask) navigate('/', { replace: true })
   }, [draftTask, navigate])
+
+  // Leaving mid-recording (back button, save, discard) shouldn't leave the
+  // mic stream open in the background.
+  useEffect(() => () => recorder.cancel(), []) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!draftTask) return null
 
@@ -158,6 +164,15 @@ export default function Confirm() {
     }
     updateDraft({ durationMinutes: value })
   }
+
+  const handleRecordVoiceNote = () => requirePremium(() => recorder.start())
+
+  const handleStopVoiceNote = async () => {
+    const dataUrl = await recorder.stop()
+    if (dataUrl) updateDraft({ voiceNote: dataUrl })
+  }
+
+  const handleRemoveVoiceNote = () => updateDraft({ voiceNote: null })
 
   const handleAddCategory = () => {
     requirePremium(() => {
@@ -414,6 +429,42 @@ export default function Confirm() {
               onChange={(e) => isPremium && updateDraft({ notes: e.target.value })}
             />
           </label>
+
+          <div className="field">
+            <PremiumLabel isPremium={isPremium}>Voice note</PremiumLabel>
+            {draftTask.voiceNote ? (
+              <div className="voice-note-row">
+                <audio controls src={draftTask.voiceNote} className="voice-note-player" />
+                <button
+                  type="button"
+                  className="icon-button"
+                  onClick={handleRemoveVoiceNote}
+                  aria-label="Remove voice note"
+                >
+                  <TrashIcon />
+                </button>
+              </div>
+            ) : recorder.isRecording ? (
+              <button
+                type="button"
+                className="button button--danger button--compact"
+                onClick={handleStopVoiceNote}
+              >
+                <StopIcon width={14} height={14} /> Stop · {recorder.seconds}s
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="button button--light button--compact"
+                onClick={handleRecordVoiceNote}
+                disabled={!recorder.isSupported}
+              >
+                <MicIcon width={14} height={14} />{' '}
+                {recorder.isSupported ? 'Record a voice note' : 'Mic not supported on this device'}
+              </button>
+            )}
+            {recorder.error && <p className="settings-row__note">Couldn’t access the mic — check permissions.</p>}
+          </div>
 
           <div className="field">
             <PremiumLabel isPremium={isPremium}>Subtasks</PremiumLabel>

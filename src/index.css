@@ -1403,6 +1403,18 @@ a {
   flex-shrink: 0;
 }
 
+.voice-note-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.voice-note-player {
+  flex: 1;
+  height: 36px;
+  min-width: 0;
+}
+
 /* Templates page */
 .template-card {
   display: flex;

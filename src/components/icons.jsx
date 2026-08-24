@@ -222,3 +222,11 @@ export function LayersIcon(props) {
     </svg>
   )
 }
+
+export function StopIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" {...props}>
+      <rect x="6" y="6" width="12" height="12" rx="2" />
+    </svg>
+  )
+}

@@ -37,6 +37,9 @@ function normalizeTask(task) {
     // Todoist sections group tasks within a project. Empty means ungrouped.
     section: typeof task.section === 'string' ? task.section : '',
     durationMinutes: Number.isFinite(task.durationMinutes) ? task.durationMinutes : 0,
+    // Device-local only — deliberately left out of toRemoteRow/fromRemoteRow
+    // below, so it never rides along in the sync payload.
+    voiceNote: typeof task.voiceNote === 'string' ? task.voiceNote : null,
   }
 }
 
@@ -259,6 +262,7 @@ export function useTasks(userId) {
       labels: task.labels ?? [],
       section: task.section ?? '',
       durationMinutes: task.durationMinutes ?? 0,
+      voiceNote: task.voiceNote ?? null,
     }
     setTasks((prev) => [...prev, newTask])
     return newTask

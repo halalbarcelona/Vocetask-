@@ -25,6 +25,7 @@ const FEATURES = [
   { label: 'Upcoming — the 7-day view', free: '—', premium: 'Included' },
   { label: 'Focus timer', free: '—', premium: 'Included' },
   { label: 'Notes on tasks', free: '—', premium: 'Included' },
+  { label: 'Voice notes on tasks', free: '—', premium: 'Included' },
   { label: 'Bulk select & actions', free: '—', premium: 'Included' },
   { label: 'Snooze a task', free: '—', premium: 'Included' },
   { label: 'Reminder lead time', free: '—', premium: 'Included' },

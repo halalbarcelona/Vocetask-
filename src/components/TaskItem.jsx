@@ -29,7 +29,7 @@ export default function TaskItem({
   const subtasks = task.subtasks ?? []
   const doneSubtasks = subtasks.filter((s) => s.done).length
   const labels = task.labels ?? []
-  const hasExpandable = subtasks.length > 0 || Boolean(task.notes)
+  const hasExpandable = subtasks.length > 0 || Boolean(task.notes) || Boolean(task.voiceNote)
   const priority = task.priority && task.priority !== 'none' ? task.priority : null
 
   const handleBodyClick = () => {
@@ -159,6 +159,7 @@ export default function TaskItem({
       {expanded && hasExpandable && (
         <div className="task-card__subtasks">
           {task.notes && <p className="task-card__notes">{task.notes}</p>}
+          {task.voiceNote && <audio controls src={task.voiceNote} className="voice-note-player" />}
           {subtasks.map((subtask) => (
             <label key={subtask.id} className="subtask-row">
               <input

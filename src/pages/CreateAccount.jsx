@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useAccountContext } from '../hooks/AccountContext'
 import { UserIcon } from '../components/icons'
 import { markAccountJustCreated } from '../components/OnboardingTour'
+import { useUILangContext } from '../hooks/UILangContext'
 
 export default function CreateAccount() {
   const navigate = useNavigate()
   const { createAccount } = useAccountContext()
+  const { t } = useUILangContext()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
 
@@ -26,26 +28,24 @@ export default function CreateAccount() {
         <div className="paywall-hero__icon">
           <UserIcon />
         </div>
-        <h1 className="paywall-hero__title">Welcome to Aura Task</h1>
-        <p className="paywall-hero__subtitle">
-          Create your account and every Premium feature is yours free for 7 days — no card needed.
-        </p>
+        <h1 className="paywall-hero__title">{t('welcomeTitle')}</h1>
+        <p className="paywall-hero__subtitle">{t('welcomeSubtitle')}</p>
 
         <form className="card confirm-card" style={{ width: '100%', textAlign: 'left' }} onSubmit={handleSubmit}>
           <label className="field">
-            <span className="field__label">Name</span>
+            <span className="field__label">{t('name')}</span>
             <input
               type="text"
               className="field__input"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Your name"
+              placeholder={t('yourName')}
               autoComplete="name"
             />
           </label>
 
           <label className="field">
-            <span className="field__label">Email</span>
+            <span className="field__label">{t('email')}</span>
             <input
               type="email"
               className="field__input"
@@ -57,13 +57,11 @@ export default function CreateAccount() {
           </label>
 
           <button type="submit" className="button button--primary button--wide" disabled={!canSubmit}>
-            Create account
+            {t('createAccount')}
           </button>
         </form>
 
-        <p className="record-hint" style={{ marginTop: 4 }}>
-          Everything stays on this device — no data leaves your browser except when you upgrade.
-        </p>
+        <p className="record-hint" style={{ marginTop: 4 }}>{t('stayLocalHint')}</p>
       </main>
     </div>
   )

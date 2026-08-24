@@ -23,6 +23,7 @@ import { speakDailyRecap } from '../utils/speak'
 import { checkMilestone } from '../utils/milestones'
 import { fixSpeech } from '../utils/speechFix'
 import { useVoiceLang } from '../hooks/useVoiceLang'
+import { useUILangContext } from '../hooks/UILangContext'
 import { useLabelsContext } from '../hooks/LabelsContext'
 import { useFiltersContext } from '../hooks/FiltersContext'
 import { useCategoriesContext } from '../hooks/CategoriesContext'
@@ -65,6 +66,7 @@ export default function Home() {
   } = useTasksContext()
   const { isPremium, isPaid, trialActive, trialExpired, trialDaysLeft } = usePremiumContext()
   const { lang: voiceLang } = useVoiceLang()
+  const { t } = useUILangContext()
   const { labels, colorFor } = useLabelsContext()
   const { filters } = useFiltersContext()
   const { categories } = useCategoriesContext()
@@ -84,7 +86,7 @@ export default function Home() {
   useEffect(() => {
     if (location.state?.toast) {
       showToast(location.state.toast, {
-        actionLabel: location.state.undoTask ? 'Undo' : undefined,
+        actionLabel: location.state.undoTask ? t('undo') : undefined,
         onAction: location.state.undoTask ? () => restoreTask(location.state.undoTask) : undefined,
       })
     }
@@ -106,7 +108,7 @@ export default function Home() {
     const milestone = checkMilestone(tasks, computeStreak(tasks))
     if (!milestone) return
     showToast(milestone.message, {
-      actionLabel: isPaid ? undefined : 'See Premium',
+      actionLabel: isPaid ? undefined : t('seePremium'),
       onAction: isPaid ? undefined : () => navigate('/upgrade'),
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -206,8 +208,8 @@ export default function Home() {
 
   const handleDelete = (task) => {
     removeTask(task.id)
-    showToast(`Deleted "${task.title || 'Untitled task'}"`, {
-      actionLabel: 'Undo',
+    showToast(t('deletedTask', task.title || t('untitledTask')), {
+      actionLabel: t('undo'),
       onAction: () => restoreTask(task),
     })
   }
@@ -238,7 +240,7 @@ export default function Home() {
     setQuickAdd('')
     if (parsed.date !== today) {
       const when = parsed.time ? `${formatDateLabel(parsed.date)}, ${formatTimeLabel(parsed.time)}` : formatDateLabel(parsed.date)
-      showToast(`Added for ${when}`)
+      showToast(t('addedFor', when))
     }
   }
 
@@ -286,7 +288,7 @@ export default function Home() {
     bulkRemoveTasks(selectedIds)
     setSelectedIds([])
     setSelectMode(false)
-    showToast(`Deleted ${selectedIds.length} task(s)`)
+    showToast(t('deletedCount', selectedIds.length))
   }
 
   const handleVoiceSearch = () => {
@@ -324,7 +326,7 @@ export default function Home() {
             type="button"
             className={`icon-button${selectMode ? ' icon-button--accent' : ''}`}
             onClick={handleToggleSelectMode}
-            aria-label="Select multiple tasks"
+            aria-label={t('selectMultiple')}
           >
             <CheckIcon width={18} height={18} />
           </button>
@@ -332,7 +334,7 @@ export default function Home() {
             type="button"
             className="icon-button"
             onClick={handleSpeakRecap}
-            aria-label="Read today's tasks aloud"
+            aria-label={t('readAloud')}
           >
             <SpeakerIcon />
           </button>
@@ -340,7 +342,7 @@ export default function Home() {
             type="button"
             className="icon-button"
             onClick={handleManualAdd}
-            aria-label="Add a task manually"
+            aria-label={t('addManually')}
           >
             <PlusIcon />
           </button>
@@ -355,17 +357,16 @@ export default function Home() {
             onClick={() => navigate('/upgrade')}
           >
             <span>
-              <SparkIcon width={14} height={14} /> Premium trial — {trialDaysLeft} day
-              {trialDaysLeft === 1 ? '' : 's'} left
+              <SparkIcon width={14} height={14} /> {t('premiumTrial', trialDaysLeft)}
             </span>
-            <span className="trial-banner__cta">Keep it →</span>
+            <span className="trial-banner__cta">{t('keepIt')}</span>
           </button>
         )}
 
         {streak > 0 && (
           <p className="streak-banner">
             <FlameIcon width={14} height={14} />
-            {streak}-day streak
+            {t('dayStreak', streak)}
           </p>
         )}
 
@@ -373,7 +374,7 @@ export default function Home() {
           <SearchIcon />
           <input
             type="text"
-            placeholder="Search tasks…"
+            placeholder={t('searchTasks')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -381,7 +382,7 @@ export default function Home() {
             type="button"
             className={`search-bar__mic${listening ? ' search-bar__mic--active' : ''}`}
             onClick={handleVoiceSearch}
-            aria-label="Search by voice"
+            aria-label={t('searchByVoice')}
           >
             <MicIcon width={16} height={16} />
           </button>
@@ -389,10 +390,10 @@ export default function Home() {
 
         {isSearching ? (
           <section>
-            <h2 className="section-title">Search results</h2>
+            <h2 className="section-title">{t('searchResults')}</h2>
             {searchResults.length === 0 ? (
               <div className="empty-state">
-                <p>No matching tasks.</p>
+                <p>{t('noMatchingTasks')}</p>
               </div>
             ) : (
               <div className="task-list">
@@ -421,7 +422,7 @@ export default function Home() {
                 <PlusIcon width={16} height={16} />
                 <input
                   type="text"
-                  placeholder="Quick add — try “kal 5pm #Work !high call mummy”"
+                  placeholder={t('quickAddPlaceholder')}
                   value={quickAdd}
                   onChange={(e) => setQuickAdd(e.target.value)}
                   onKeyDown={(e) => {
@@ -433,7 +434,7 @@ export default function Home() {
                 />
                 {quickAdd.trim() && (
                   <button type="button" className="button button--primary button--compact" onClick={handleQuickAdd}>
-                    Add
+                    {t('add')}
                   </button>
                 )}
               </div>
@@ -489,14 +490,14 @@ export default function Home() {
             {isFiltering ? (
               <section>
                 <div className="section-title-row">
-                  <h2 className="section-title">Filter: {activeFilter.name}</h2>
+                  <h2 className="section-title">{t('filterLabel', activeFilter.name)}</h2>
                   <button type="button" className="sort-toggle" onClick={() => setActiveFilterId(null)}>
-                    Clear
+                    {t('clear')}
                   </button>
                 </div>
                 {filterResults.length === 0 ? (
                   <div className="empty-state">
-                    <p>No tasks match this filter.</p>
+                    <p>{t('noTasksMatchFilter')}</p>
                   </div>
                 ) : (
                   <div className="task-list">
@@ -522,7 +523,7 @@ export default function Home() {
               <>
             {overdueTasks.length > 0 && (
               <section>
-                <h2 className="section-title section-title--danger">Overdue · {overdueTasks.length}</h2>
+                <h2 className="section-title section-title--danger">{t('overdue', overdueTasks.length)}</h2>
                 <div className="task-list">
                   {overdueTasks.map((task) => (
                     <TaskItem
@@ -545,14 +546,14 @@ export default function Home() {
 
             <section>
               <div className="section-title-row">
-                <h2 className="section-title">Today</h2>
+                <h2 className="section-title">{t('today')}</h2>
                 {todayTasks.length > 1 && (
                   <button
                     type="button"
                     className={`sort-toggle${sortByPriority ? ' sort-toggle--active' : ''}`}
                     onClick={handleTogglePrioritySort}
                   >
-                    Sort by priority
+                    {t('sortByPriority')}
                   </button>
                 )}
               </div>
@@ -566,15 +567,15 @@ export default function Home() {
                     />
                   </div>
                   <span className="progress__label">
-                    {doneToday.length} of {todayTasks.length} done
+                    {t('doneOfTotal', doneToday.length, todayTasks.length)}
                   </span>
                 </div>
               )}
 
               {todayTasks.length === 0 ? (
                 <div className="empty-state">
-                  <p>Nothing for today yet.</p>
-                  <p className="empty-state__hint">Tap the mic and say it — like this:</p>
+                  <p>{t('nothingForToday')}</p>
+                  <p className="empty-state__hint">{t('tapMicHint')}</p>
                   <div className="example-list">
                     {(VOICE_EXAMPLES[voiceLang] ?? VOICE_EXAMPLES['en-IN']).map((example) => (
                       <button
@@ -591,7 +592,7 @@ export default function Home() {
               ) : sectionGroups ? (
                 sectionGroups.map(([section, sectionTasks]) => (
                   <div key={section || '__none__'} className="task-section">
-                    <h3 className="task-section__title">{section || 'No section'}</h3>
+                    <h3 className="task-section__title">{section || t('noSection')}</h3>
                     <div className="task-list">
                       {sectionTasks.map((task) => (
                         <TaskItem
@@ -640,7 +641,7 @@ export default function Home() {
 
             {doneToday.length > 0 && (
               <section>
-                <h2 className="section-title">Done · {doneToday.length}</h2>
+                <h2 className="section-title">{t('doneCount', doneToday.length)}</h2>
                 <div className="task-list">
                   {doneToday.map((task) => (
                     <TaskItem
@@ -667,13 +668,13 @@ export default function Home() {
 
       {selectMode && selectedIds.length > 0 && (
         <div className="bulk-action-bar">
-          <span className="bulk-action-bar__count">{selectedIds.length} selected</span>
+          <span className="bulk-action-bar__count">{t('selectedCount', selectedIds.length)}</span>
           <div className="bulk-action-bar__actions">
             <button type="button" className="button button--primary button--compact" onClick={handleBulkComplete}>
-              <CheckIcon width={14} height={14} /> Complete
+              <CheckIcon width={14} height={14} /> {t('complete')}
             </button>
             <button type="button" className="button button--danger button--compact" onClick={handleBulkDelete}>
-              <TrashIcon width={14} height={14} /> Delete
+              <TrashIcon width={14} height={14} /> {t('delete')}
             </button>
           </div>
         </div>
@@ -681,7 +682,7 @@ export default function Home() {
 
       <Toast toast={toast} onDismiss={dismissToast} />
       {!selectMode && (
-        <button type="button" className="fab" onClick={handleMicTap} aria-label="Add a task with your voice">
+        <button type="button" className="fab" onClick={handleMicTap} aria-label={t('addVoiceTask')}>
           <MicIcon width={26} height={26} />
         </button>
       )}

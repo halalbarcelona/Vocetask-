@@ -8,6 +8,7 @@ import { LabelsProvider } from './hooks/LabelsContext'
 import { FiltersProvider } from './hooks/FiltersContext'
 import { AccentProvider } from './hooks/AccentContext'
 import { SyncProvider } from './hooks/SyncContext'
+import { UILangProvider } from './hooks/UILangContext'
 import Home from './pages/Home'
 import Record from './pages/Record'
 import Confirm from './pages/Confirm'
@@ -49,6 +50,7 @@ function PremiumBackendSync() {
 
 export default function App() {
   return (
+    <UILangProvider>
     <AccountProvider>
       <AccentProvider>
         <PremiumProvider>
@@ -89,5 +91,6 @@ export default function App() {
         </PremiumProvider>
       </AccentProvider>
     </AccountProvider>
+    </UILangProvider>
   )
 }

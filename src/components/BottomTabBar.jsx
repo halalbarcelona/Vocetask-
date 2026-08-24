@@ -1,13 +1,14 @@
 import { NavLink } from 'react-router-dom'
 import { HomeIcon, CalendarIcon, SettingsIcon } from './icons'
-
-const TABS = [
-  { to: '/', label: 'Home', Icon: HomeIcon, end: true },
-  { to: '/calendar', label: 'Calendar', Icon: CalendarIcon, end: false },
-  { to: '/settings', label: 'Settings', Icon: SettingsIcon, end: false },
-]
+import { useUILangContext } from '../hooks/UILangContext'
 
 export default function BottomTabBar() {
+  const { t } = useUILangContext()
+  const TABS = [
+    { to: '/', label: t('navHome'), Icon: HomeIcon, end: true },
+    { to: '/calendar', label: t('navCalendar'), Icon: CalendarIcon, end: false },
+    { to: '/settings', label: t('navSettings'), Icon: SettingsIcon, end: false },
+  ]
   return (
     <nav className="tab-bar">
       {TABS.map(({ to, label, Icon, end }) => (

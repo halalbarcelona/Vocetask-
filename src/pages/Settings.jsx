@@ -9,6 +9,7 @@ import { useNotifications } from '../hooks/useNotifications'
 import { useTheme } from '../hooks/useTheme'
 import { useAccentContext } from '../hooks/AccentContext'
 import { useVoiceLang, VOICE_LANGS } from '../hooks/useVoiceLang'
+import { useUILangContext } from '../hooks/UILangContext'
 import { downloadICS } from '../utils/icsExport'
 import { exportTasksJSON, parseBackupFile } from '../utils/backup'
 import { buildTodaySummary, shareText } from '../utils/share'
@@ -16,13 +17,14 @@ import { isDueOn } from '../utils/recurrence'
 import { todayISO } from '../utils/dateUtils'
 
 function PremiumRow({ isPremium, label, onClick }) {
+  const { t } = useUILangContext()
   return (
     <button type="button" className="settings-row settings-row--link" onClick={onClick}>
       <span>
         {label}
         {!isPremium && (
           <span className="field__label-badge">
-            <LockIcon width={12} height={12} /> Premium
+            <LockIcon width={12} height={12} /> {t('premiumBadge')}
           </span>
         )}
       </span>
@@ -41,6 +43,7 @@ export default function Settings() {
   const { theme, setTheme } = useTheme()
   const { accent, setAccent, presets } = useAccentContext()
   const { lang: voiceLang, setLang: setVoiceLang } = useVoiceLang()
+  const { lang: uiLang, setLang: setUILang, t, options: uiLangOptions } = useUILangContext()
   const [calendarSync, setCalendarSync] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
   const importInputRef = useRef(null)
@@ -87,7 +90,7 @@ export default function Settings() {
   return (
     <div className="screen">
       <header className="page-header">
-        <h1 className="page-header__title">Settings</h1>
+        <h1 className="page-header__title">{t('settingsTitle')}</h1>
       </header>
 
       <main className="screen__content">
@@ -100,28 +103,28 @@ export default function Settings() {
         </div>
 
         <p className="trust-badge">
-          <LockIcon width={13} height={13} /> Your tasks stay on this device — never uploaded.
+          <LockIcon width={13} height={13} /> {t('trustBadge')}
         </p>
 
         <div className={`upgrade-banner${isPremium ? ' upgrade-banner--premium' : ''}`}>
           <div>
             <p className="upgrade-banner__title">
               {isPaid
-                ? 'Premium — lifetime'
+                ? t('premiumLifetime')
                 : trialActive
-                  ? `Premium trial — ${trialDaysLeft} day${trialDaysLeft === 1 ? '' : 's'} left`
+                  ? t('premiumTrialDaysLeft', trialDaysLeft)
                   : trialAvailable
-                    ? `${trialDays} days of Premium, free`
-                    : 'You’re on Free'}
+                    ? t('premiumDaysFree', trialDays)
+                    : t('onFreePlan')}
             </p>
             <p className="upgrade-banner__subtitle">
               {isPaid
-                ? 'Paid once. Every feature, forever.'
+                ? t('paidOncePitch')
                 : trialActive
-                  ? 'Keep every feature for one payment'
+                  ? t('keepEveryFeature')
                   : trialAvailable
-                    ? 'No card needed'
-                    : 'One-time payment — no subscription'}
+                    ? t('noCardNeeded')
+                    : t('oneTimeNoSub')}
             </p>
           </div>
           {!isPaid && (
@@ -130,32 +133,32 @@ export default function Settings() {
               className="button button--light"
               onClick={() => (trialAvailable ? startTrial() : navigate('/upgrade'))}
             >
-              {trialActive ? 'Keep it' : trialAvailable ? 'Start' : 'Upgrade'}
+              {trialActive ? t('keep') : trialAvailable ? t('start') : t('upgrade')}
             </button>
           )}
         </div>
 
         <section className="settings-group">
-          <h2 className="section-title">Preferences</h2>
+          <h2 className="section-title">{t('preferences')}</h2>
           <div className="card">
             <div className="settings-row">
               <span>
-                Push notifications
-                {notifications.enabled && <span className="settings-row__note"> · while app is open</span>}
+                {t('pushNotifications')}
+                {notifications.enabled && <span className="settings-row__note">{t('whileAppOpen')}</span>}
               </span>
               <Toggle
                 checked={notifications.enabled}
                 onChange={notifications.setEnabled}
-                label="Push notifications"
+                label={t('pushNotifications')}
               />
             </div>
             <div className="settings-row">
-              <span>Appearance</span>
+              <span>{t('appearance')}</span>
               <div className="theme-row">
                 {[
-                  { value: 'system', label: 'Auto' },
-                  { value: 'light', label: 'Light', icon: <SunIcon width={13} height={13} /> },
-                  { value: 'dark', label: 'Dark', icon: <MoonIcon width={13} height={13} /> },
+                  { value: 'system', label: t('auto') },
+                  { value: 'light', label: t('light'), icon: <SunIcon width={13} height={13} /> },
+                  { value: 'dark', label: t('dark'), icon: <MoonIcon width={13} height={13} /> },
                 ].map((option) => (
                   <button
                     key={option.value}
@@ -171,7 +174,7 @@ export default function Settings() {
               </div>
             </div>
             <div className="settings-row settings-row--stacked">
-              <span>Accent color</span>
+              <span>{t('accentColor')}</span>
               <div className="accent-swatch-row">
                 {presets.map((preset) => (
                   <button
@@ -188,7 +191,23 @@ export default function Settings() {
               </div>
             </div>
             <div className="settings-row">
-              <span>Voice language</span>
+              <span>{t('appLanguage')}</span>
+              <div className="theme-row">
+                {uiLangOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={`theme-chip${uiLang === option.value ? ' theme-chip--active' : ''}`}
+                    onClick={() => setUILang(option.value)}
+                    aria-pressed={uiLang === option.value}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="settings-row">
+              <span>{t('voiceLanguage')}</span>
               <div className="theme-row">
                 {VOICE_LANGS.map((option) => (
                   <button
@@ -209,67 +228,67 @@ export default function Settings() {
               className="settings-row settings-row--link"
               onClick={() => navigate('/voice-test')}
             >
-              <span>Test the mic</span>
+              <span>{t('testTheMic')}</span>
               <ChevronIcon />
             </button>
             <div className="settings-row">
-              <span>Calendar sync</span>
-              <Toggle checked={calendarSync} onChange={setCalendarSync} label="Calendar sync" />
+              <span>{t('calendarSync')}</span>
+              <Toggle checked={calendarSync} onChange={setCalendarSync} label={t('calendarSync')} />
             </div>
           </div>
         </section>
 
         <section className="settings-group">
-          <h2 className="section-title">Insights</h2>
+          <h2 className="section-title">{t('insights')}</h2>
           <div className="card">
             <PremiumRow
               isPremium={isPremium}
-              label="Productivity report"
+              label={t('productivityReport')}
               onClick={() => (isPremium ? navigate('/stats') : navigate('/upgrade'))}
             />
             <PremiumRow
               isPremium={isPremium}
-              label="Task templates"
+              label={t('taskTemplates')}
               onClick={() => (isPremium ? navigate('/templates') : navigate('/upgrade'))}
             />
             <PremiumRow
               isPremium={isPremium}
-              label="Filters"
+              label={t('filters')}
               onClick={() => (isPremium ? navigate('/filters') : navigate('/upgrade'))}
             />
           </div>
         </section>
 
         <section className="settings-group">
-          <h2 className="section-title">Plan ahead</h2>
+          <h2 className="section-title">{t('planAhead')}</h2>
           <div className="card">
             <PremiumRow
               isPremium={isPremium}
-              label="Upcoming — the next 7 days"
+              label={t('upcoming7Days')}
               onClick={() => (isPremium ? navigate('/upcoming') : navigate('/upgrade'))}
             />
             <PremiumRow
               isPremium={isPremium}
-              label="Focus timer"
+              label={t('focusTimer')}
               onClick={() => (isPremium ? navigate('/focus') : navigate('/upgrade'))}
             />
           </div>
         </section>
 
         <section className="settings-group">
-          <h2 className="section-title">Data</h2>
+          <h2 className="section-title">{t('data')}</h2>
           <div className="card">
             <PremiumRow
               isPremium={isPremium}
-              label="Export to calendar (.ics)"
+              label={t('exportCalendar')}
               onClick={() => (isPremium ? downloadICS(tasks) : navigate('/upgrade'))}
             />
-            <PremiumRow isPremium={isPremium} label="Backup tasks (.json)" onClick={handleBackup} />
-            <PremiumRow isPremium={isPremium} label="Restore from backup" onClick={handleRestoreClick} />
-            <PremiumRow isPremium={isPremium} label="Share today’s list" onClick={handleShareToday} />
+            <PremiumRow isPremium={isPremium} label={t('backupTasks')} onClick={handleBackup} />
+            <PremiumRow isPremium={isPremium} label={t('restoreBackup')} onClick={handleRestoreClick} />
+            <PremiumRow isPremium={isPremium} label={t('shareToday')} onClick={handleShareToday} />
             <PremiumRow
               isPremium={isPremium}
-              label="Sync across devices"
+              label={t('syncDevices')}
               onClick={() => (isPremium ? navigate('/sync') : navigate('/upgrade'))}
             />
             <input
@@ -284,14 +303,14 @@ export default function Settings() {
         </section>
 
         <section className="settings-group">
-          <h2 className="section-title">General</h2>
+          <h2 className="section-title">{t('general')}</h2>
           <div className="card">
             <button type="button" className="settings-row settings-row--link" onClick={() => navigate('/account')}>
-              <span>Account settings</span>
+              <span>{t('accountSettings')}</span>
               <ChevronIcon />
             </button>
             <button type="button" className="settings-row settings-row--link" onClick={() => navigate('/privacy')}>
-              <span>Privacy policy</span>
+              <span>{t('privacyPolicy')}</span>
               <ChevronIcon />
             </button>
           </div>

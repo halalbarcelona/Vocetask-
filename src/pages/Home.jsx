@@ -24,6 +24,7 @@ import { checkMilestone } from '../utils/milestones'
 import { fixSpeech } from '../utils/speechFix'
 import { useVoiceLang } from '../hooks/useVoiceLang'
 import { useUILangContext } from '../hooks/UILangContext'
+import { useCommandPaletteContext } from '../hooks/CommandPaletteContext'
 import { useLabelsContext } from '../hooks/LabelsContext'
 import { useFiltersContext } from '../hooks/FiltersContext'
 import { useCategoriesContext } from '../hooks/CategoriesContext'
@@ -67,6 +68,7 @@ export default function Home() {
   const { isPremium, isPaid, trialActive, trialExpired, trialDaysLeft } = usePremiumContext()
   const { lang: voiceLang } = useVoiceLang()
   const { t } = useUILangContext()
+  const { open: openCommandPalette } = useCommandPaletteContext()
   const { labels, colorFor } = useLabelsContext()
   const { filters } = useFiltersContext()
   const { categories } = useCategoriesContext()
@@ -197,7 +199,26 @@ export default function Home() {
         ).sort(([a], [b]) => (a === '' ? 1 : b === '' ? -1 : a.localeCompare(b)))
       : null
 
+  // Long-press reveals the command palette without adding a second visible
+  // button — the FAB's tap behavior (record a task) stays exactly as it was.
+  const longPressTimerRef = useRef(null)
+  const longPressFiredRef = useRef(false)
+
+  const handleFabPointerDown = () => {
+    longPressFiredRef.current = false
+    longPressTimerRef.current = setTimeout(() => {
+      longPressFiredRef.current = true
+      openCommandPalette()
+    }, 500)
+  }
+
+  const cancelFabLongPress = () => clearTimeout(longPressTimerRef.current)
+
   const handleMicTap = () => {
+    if (longPressFiredRef.current) {
+      longPressFiredRef.current = false
+      return
+    }
     navigate('/record')
   }
 
@@ -682,7 +703,15 @@ export default function Home() {
 
       <Toast toast={toast} onDismiss={dismissToast} />
       {!selectMode && (
-        <button type="button" className="fab" onClick={handleMicTap} aria-label={t('addVoiceTask')}>
+        <button
+          type="button"
+          className="fab"
+          onClick={handleMicTap}
+          onPointerDown={handleFabPointerDown}
+          onPointerUp={cancelFabLongPress}
+          onPointerLeave={cancelFabLongPress}
+          aria-label={t('addVoiceTask')}
+        >
           <MicIcon width={26} height={26} />
         </button>
       )}

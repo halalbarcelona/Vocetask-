@@ -9,6 +9,8 @@ import { FiltersProvider } from './hooks/FiltersContext'
 import { AccentProvider } from './hooks/AccentContext'
 import { SyncProvider } from './hooks/SyncContext'
 import { UILangProvider } from './hooks/UILangContext'
+import { CommandPaletteProvider } from './hooks/CommandPaletteContext'
+import CommandPalette from './components/CommandPalette'
 import Home from './pages/Home'
 import Record from './pages/Record'
 import Confirm from './pages/Confirm'
@@ -64,6 +66,14 @@ export default function App() {
                     <Routes>
                       <Route path="/create-account" element={<CreateAccount />} />
                       <Route element={<RequireAccount />}>
+                        <Route
+                          element={
+                            <CommandPaletteProvider>
+                              <CommandPalette />
+                              <Outlet />
+                            </CommandPaletteProvider>
+                          }
+                        >
                         <Route path="/" element={<Home />} />
                         <Route path="/record" element={<Record />} />
                         <Route path="/confirm" element={<Confirm />} />
@@ -83,6 +93,7 @@ export default function App() {
                         <Route path="/upcoming" element={<Upcoming />} />
                         <Route path="/focus" element={<Focus />} />
                         <Route path="/sync" element={<Sync />} />
+                        </Route>
                       </Route>
                     </Routes>
                   </FiltersProvider>

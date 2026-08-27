@@ -1,10 +1,10 @@
 import { isDueOn } from './recurrence'
 
-// A reasonable default day, since the app has no per-user working-hours
-// setting yet — waking hours, not literal work hours, so a suggestion still
-// makes sense for personal errands in the evening.
-const DAY_START_MINUTES = 8 * 60
-const DAY_END_MINUTES = 21 * 60
+// Fallback window for anyone who hasn't set working hours in Settings —
+// waking hours, not literal work hours, so a suggestion still makes sense
+// for personal errands in the evening.
+const DEFAULT_DAY_START_MINUTES = 8 * 60
+const DEFAULT_DAY_END_MINUTES = 21 * 60
 const SLOT_STEP_MINUTES = 15
 
 function toMinutes(time) {
@@ -46,10 +46,15 @@ function busyIntervals(tasks, date, excludeTaskId) {
 // starting the search no earlier than `notBefore` minutes-of-day (so
 // "today" doesn't suggest a slot that's already passed). Returns a "HH:MM"
 // string, or null if the day's booked solid.
-export function suggestSlot(tasks, date, durationMinutes, { excludeTaskId, notBefore } = {}) {
+export function suggestSlot(
+  tasks,
+  date,
+  durationMinutes,
+  { excludeTaskId, notBefore, dayStartMinutes = DEFAULT_DAY_START_MINUTES, dayEndMinutes = DEFAULT_DAY_END_MINUTES } = {},
+) {
   if (!durationMinutes || durationMinutes <= 0) return null
   const busy = busyIntervals(tasks, date, excludeTaskId)
-  const earliestStart = Math.max(DAY_START_MINUTES, notBefore ?? 0)
+  const earliestStart = Math.max(dayStartMinutes, notBefore ?? 0)
 
   let cursor = earliestStart
   for (const interval of busy) {
@@ -58,6 +63,6 @@ export function suggestSlot(tasks, date, durationMinutes, { excludeTaskId, notBe
   }
   cursor = Math.ceil(cursor / SLOT_STEP_MINUTES) * SLOT_STEP_MINUTES
 
-  if (cursor + durationMinutes > DAY_END_MINUTES) return null
+  if (cursor + durationMinutes > dayEndMinutes) return null
   return toTimeString(cursor)
 }

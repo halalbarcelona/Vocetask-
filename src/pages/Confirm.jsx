@@ -11,6 +11,7 @@ import { BackIcon, LockIcon, MicIcon, PlusIcon, SparkIcon, StopIcon, TrashIcon }
 import { DURATION_OPTIONS } from '../utils/duration'
 import { useVoiceRecorder } from '../hooks/useVoiceRecorder'
 import { suggestSlot } from '../utils/schedule'
+import { usePreferencesContext } from '../hooks/PreferencesContext'
 import { formatTimeLabel, todayISO } from '../utils/dateUtils'
 
 const RECURRENCE_OPTIONS = [
@@ -69,6 +70,7 @@ export default function Confirm() {
   const navigate = useNavigate()
   const { tasks, draftTask, setDraftTask, addTask, updateTask, clearDraft } = useTasksContext()
   const { isPremium } = usePremiumContext()
+  const { workStartMinutes, workEndMinutes } = usePreferencesContext()
   const { categories, addCategory, colorForCategory } = useCategoriesContext()
   const { labels, addLabel } = useLabelsContext()
   const { saveTemplate } = useTemplates()
@@ -119,8 +121,10 @@ export default function Confirm() {
     return suggestSlot(tasks, draftTask.date, draftTask.durationMinutes, {
       excludeTaskId: draftTask.id,
       notBefore,
+      dayStartMinutes: workStartMinutes,
+      dayEndMinutes: workEndMinutes,
     })
-  }, [tasks, draftTask.date, draftTask.durationMinutes, draftTask.id])
+  }, [tasks, draftTask.date, draftTask.durationMinutes, draftTask.id, workStartMinutes, workEndMinutes])
 
   const draftLabels = draftTask.labels ?? []
 

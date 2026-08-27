@@ -2173,6 +2173,20 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
+.working-hours-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  width: 100%;
+  color: var(--text-muted);
+  font-size: var(--t-sm);
+}
+
+.working-hours-row .field__input {
+  flex: 1;
+  padding: var(--s2) var(--s3);
+}
+
 /* Accent color picker */
 .settings-row--stacked {
   flex-direction: column;

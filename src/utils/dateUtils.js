@@ -36,15 +36,16 @@ export function monthLabel(year, month) {
   return `${MONTH_LABELS[month]} ${year}`
 }
 
-export function weekdayLabels() {
-  return WEEKDAY_LABELS
+// weekStartsOn: 0 = Sunday (default), 1 = Monday.
+export function weekdayLabels(weekStartsOn = 0) {
+  return weekStartsOn === 1 ? [...WEEKDAY_LABELS.slice(1), WEEKDAY_LABELS[0]] : WEEKDAY_LABELS
 }
 
 // Returns a 6x7 grid of Date objects covering the full weeks that contain
 // every day of the given month, so the calendar grid is always complete.
-export function buildMonthGrid(year, month) {
+export function buildMonthGrid(year, month, weekStartsOn = 0) {
   const firstOfMonth = new Date(year, month, 1)
-  const startOffset = firstOfMonth.getDay()
+  const startOffset = (firstOfMonth.getDay() - weekStartsOn + 7) % 7
   const gridStart = new Date(year, month, 1 - startOffset)
 
   const days = []

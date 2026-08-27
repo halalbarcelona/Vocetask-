@@ -10,6 +10,7 @@ import { AccentProvider } from './hooks/AccentContext'
 import { SyncProvider } from './hooks/SyncContext'
 import { UILangProvider } from './hooks/UILangContext'
 import { CommandPaletteProvider } from './hooks/CommandPaletteContext'
+import { PreferencesProvider } from './hooks/PreferencesContext'
 import CommandPalette from './components/CommandPalette'
 import Home from './pages/Home'
 import Record from './pages/Record'
@@ -54,6 +55,7 @@ function PremiumBackendSync() {
 export default function App() {
   return (
     <UILangProvider>
+    <PreferencesProvider>
     <AccountProvider>
       <AccentProvider>
         <PremiumProvider>
@@ -104,6 +106,7 @@ export default function App() {
         </PremiumProvider>
       </AccentProvider>
     </AccountProvider>
+    </PreferencesProvider>
     </UILangProvider>
   )
 }

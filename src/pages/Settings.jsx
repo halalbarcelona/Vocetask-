@@ -10,11 +10,23 @@ import { useTheme } from '../hooks/useTheme'
 import { useAccentContext } from '../hooks/AccentContext'
 import { useVoiceLang, VOICE_LANGS } from '../hooks/useVoiceLang'
 import { useUILangContext } from '../hooks/UILangContext'
+import { usePreferencesContext } from '../hooks/PreferencesContext'
 import { downloadICS } from '../utils/icsExport'
 import { exportTasksJSON, parseBackupFile } from '../utils/backup'
 import { buildTodaySummary, shareText } from '../utils/share'
 import { isDueOn } from '../utils/recurrence'
 import { todayISO } from '../utils/dateUtils'
+
+function minutesToTimeInput(minutes) {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
+
+function timeInputToMinutes(value) {
+  const [h, m] = value.split(':').map(Number)
+  return h * 60 + m
+}
 
 function PremiumRow({ isPremium, label, onClick }) {
   const { t } = useUILangContext()
@@ -41,6 +53,7 @@ export default function Settings() {
   const { tasks, importTasks } = useTasksContext()
   const notifications = useNotifications(tasks)
   const { theme, setTheme } = useTheme()
+  const { workStartMinutes, workEndMinutes, weekStartsOn, setWorkingHours, setWeekStartsOn } = usePreferencesContext()
   const { accent, setAccent, presets } = useAccentContext()
   const { lang: voiceLang, setLang: setVoiceLang } = useVoiceLang()
   const { lang: uiLang, setLang: setUILang, t, options: uiLangOptions } = useUILangContext()
@@ -221,6 +234,44 @@ export default function Settings() {
                     {option.label}
                   </button>
                 ))}
+              </div>
+            </div>
+            <div className="settings-row">
+              <span>Week starts on</span>
+              <div className="theme-row">
+                {[
+                  { value: 0, label: 'Sunday' },
+                  { value: 1, label: 'Monday' },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={`theme-chip${weekStartsOn === option.value ? ' theme-chip--active' : ''}`}
+                    onClick={() => setWeekStartsOn(option.value)}
+                    aria-pressed={weekStartsOn === option.value}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="settings-row settings-row--stacked">
+              <span>Working hours</span>
+              <p className="settings-row__note">Smart scheduling only suggests times inside this window.</p>
+              <div className="working-hours-row">
+                <input
+                  type="time"
+                  className="field__input"
+                  value={minutesToTimeInput(workStartMinutes)}
+                  onChange={(e) => setWorkingHours(timeInputToMinutes(e.target.value), workEndMinutes)}
+                />
+                <span>to</span>
+                <input
+                  type="time"
+                  className="field__input"
+                  value={minutesToTimeInput(workEndMinutes)}
+                  onChange={(e) => setWorkingHours(workStartMinutes, timeInputToMinutes(e.target.value))}
+                />
               </div>
             </div>
             <button

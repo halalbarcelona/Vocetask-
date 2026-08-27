@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTasksContext } from '../hooks/TasksContext'
+import { usePreferencesContext } from '../hooks/PreferencesContext'
 import TaskItem from '../components/TaskItem'
 import BottomTabBar from '../components/BottomTabBar'
 import { ChevronIcon } from '../components/icons'
@@ -17,6 +18,7 @@ import {
 export default function Calendar() {
   const navigate = useNavigate()
   const { tasks, toggleDone, toggleSubtask, setDraftTask } = useTasksContext()
+  const { weekStartsOn } = usePreferencesContext()
 
   const handleEdit = (task) => {
     setDraftTask({ ...task })
@@ -30,7 +32,7 @@ export default function Calendar() {
   const month = cursor.getMonth()
   const today = todayISO()
 
-  const grid = useMemo(() => buildMonthGrid(year, month), [year, month])
+  const grid = useMemo(() => buildMonthGrid(year, month, weekStartsOn), [year, month, weekStartsOn])
 
   // Recurrence-aware: a daily task is due every day, not only on the date it
   // was created. Keyed lookup by task.date alone used to hide it everywhere
@@ -103,7 +105,7 @@ export default function Calendar() {
             </div>
 
             <div className="calendar-grid">
-              {weekdayLabels().map((label) => (
+              {weekdayLabels(weekStartsOn).map((label) => (
                 <span key={label} className="calendar-grid__weekday">
                   {label}
                 </span>

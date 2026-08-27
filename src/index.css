@@ -2511,11 +2511,18 @@ a {
   margin: var(--s3) var(--s3) var(--s1);
 }
 
+.palette__row {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
 .palette__item {
   display: flex;
   align-items: center;
   gap: var(--s3);
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   padding: var(--s3);
   border: none;
   background: transparent;
@@ -2523,6 +2530,24 @@ a {
   color: var(--text);
   font-size: var(--t-md);
   text-align: left;
+}
+
+.palette__item-complete {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--border-strong);
+  background: transparent;
+  color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.palette__item-complete:hover {
+  border-color: var(--personal);
+  color: var(--personal);
 }
 
 .palette__item--active {

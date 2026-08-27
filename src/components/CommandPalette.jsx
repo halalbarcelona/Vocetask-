@@ -6,6 +6,7 @@ import { usePremiumContext } from '../hooks/PremiumContext'
 import {
   CalendarIcon,
   ChartIcon,
+  CheckIcon,
   ColumnsIcon,
   FilterIcon,
   FlameIcon,
@@ -52,7 +53,7 @@ function useCommands() {
 
 export default function CommandPalette() {
   const { isOpen, close } = useCommandPaletteContext()
-  const { tasks, setDraftTask } = useTasksContext()
+  const { tasks, setDraftTask, toggleDone } = useTasksContext()
   const { isPremium } = usePremiumContext()
   const navigate = useNavigate()
   const commands = useCommands()
@@ -95,6 +96,15 @@ export default function CommandPalette() {
   }))
 
   const items = [...matchedCommands, ...taskItems]
+
+  const isTaskDone = (task) =>
+    task.recurrence && task.recurrence !== 'none' ? (task.completedDates ?? []).includes(todayISO()) : task.done
+
+  const handleQuickComplete = (e, taskId) => {
+    e.stopPropagation()
+    toggleDone(taskId)
+    close()
+  }
 
   const runItem = (item) => {
     if (item.premium && !isPremium) {
@@ -154,28 +164,40 @@ export default function CommandPalette() {
             return (
               <div key={item.id}>
                 {showHeader && <p className="palette__group">{item.group}</p>}
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={index === activeIndex}
-                  className={`palette__item${index === activeIndex ? ' palette__item--active' : ''}`}
-                  onMouseEnter={() => setActiveIndex(index)}
-                  onClick={() => runItem(item)}
-                >
-                  {item.Icon ? (
-                    <item.Icon width={16} height={16} />
-                  ) : (
-                    <span className="palette__item-dot" aria-hidden="true" />
+                <div className="palette__row">
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={index === activeIndex}
+                    className={`palette__item${index === activeIndex ? ' palette__item--active' : ''}`}
+                    onMouseEnter={() => setActiveIndex(index)}
+                    onClick={() => runItem(item)}
+                  >
+                    {item.Icon ? (
+                      <item.Icon width={16} height={16} />
+                    ) : (
+                      <span className="palette__item-dot" aria-hidden="true" />
+                    )}
+                    <span className="palette__item-label">{item.label}</span>
+                    {item.task && (item.task.date || item.task.time) && (
+                      <span className="palette__item-meta">
+                        {item.task.date ? formatDateLabel(item.task.date) : ''}
+                        {item.task.time ? `, ${formatTimeLabel(item.task.time)}` : ''}
+                      </span>
+                    )}
+                    {item.premium && !isPremium && <span className="palette__item-meta">Premium</span>}
+                  </button>
+                  {item.task && !isTaskDone(item.task) && (
+                    <button
+                      type="button"
+                      className="palette__item-complete"
+                      onClick={(e) => handleQuickComplete(e, item.task.id)}
+                      aria-label={`Mark ${item.label} as done`}
+                    >
+                      <CheckIcon width={12} height={12} />
+                    </button>
                   )}
-                  <span className="palette__item-label">{item.label}</span>
-                  {item.task && (item.task.date || item.task.time) && (
-                    <span className="palette__item-meta">
-                      {item.task.date ? formatDateLabel(item.task.date) : ''}
-                      {item.task.time ? `, ${formatTimeLabel(item.task.time)}` : ''}
-                    </span>
-                  )}
-                  {item.premium && !isPremium && <span className="palette__item-meta">Premium</span>}
-                </button>
+                </div>
               </div>
             )
           })}

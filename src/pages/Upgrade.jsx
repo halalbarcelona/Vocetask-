@@ -35,6 +35,7 @@ const FEATURES = [
   { label: 'Task templates', free: '—', premium: 'Included' },
   { label: 'Voice search', free: '—', premium: 'Included' },
   { label: 'Productivity report', free: '—', premium: 'Included' },
+  { label: 'Weekly review', free: '—', premium: 'Included' },
   { label: 'Backup & restore (.json)', free: '—', premium: 'Included' },
   { label: 'Share today’s list', free: '—', premium: 'Included' },
   { label: 'Sync across devices', free: '—', premium: 'Included' },

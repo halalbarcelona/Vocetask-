@@ -121,3 +121,28 @@ export function categoryBreakdown(tasks) {
   }
   return [...counts.entries()].sort((a, b) => b[1] - a[1])
 }
+
+// Tasks actually finished in the last `days` days (default 7), by when they
+// were completed — not their due date. A one-off task relies on
+// `completedAt`; a recurring task's own `completedDates` already records
+// exactly this. Older data with no completedAt (from before that field
+// existed) can't be placed in the window and is left out rather than
+// guessed at.
+export function completedInLastDays(tasks, days = 7) {
+  const cursor = new Date()
+  const cutoff = toISODate(cursor)
+  cursor.setDate(cursor.getDate() - (days - 1))
+  const windowStart = toISODate(cursor)
+
+  const completed = []
+  for (const task of tasks) {
+    if (task.recurrence && task.recurrence !== 'none') {
+      const hits = (task.completedDates ?? []).filter((d) => d >= windowStart && d <= cutoff)
+      for (const date of hits) completed.push({ task, date })
+    } else if (task.done && task.completedAt) {
+      const date = toISODate(new Date(task.completedAt))
+      if (date >= windowStart && date <= cutoff) completed.push({ task, date })
+    }
+  }
+  return completed.sort((a, b) => b.date.localeCompare(a.date))
+}

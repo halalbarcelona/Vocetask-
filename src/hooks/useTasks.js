@@ -40,6 +40,14 @@ function normalizeTask(task) {
     // Device-local only — deliberately left out of toRemoteRow/fromRemoteRow
     // below, so it never rides along in the sync payload.
     voiceNote: typeof task.voiceNote === 'string' ? task.voiceNote : null,
+    // When a one-off task was actually marked done — distinct from its due
+    // `date`, which is when it was supposed to happen. Weekly Review needs
+    // the former; using the latter would count a task finished today but
+    // overdue from last week as "completed last week". Local-only for now,
+    // same reasoning as voiceNote: additive fields ride for free locally,
+    // but going into the sync payload means a live schema migration, which
+    // this pass is deliberately not risking unsupervised.
+    completedAt: typeof task.completedAt === 'string' ? task.completedAt : null,
   }
 }
 
@@ -263,13 +271,24 @@ export function useTasks(userId) {
       section: task.section ?? '',
       durationMinutes: task.durationMinutes ?? 0,
       voiceNote: task.voiceNote ?? null,
+      completedAt: task.done ? new Date().toISOString() : null,
     }
     setTasks((prev) => [...prev, newTask])
     return newTask
   }, [])
 
   const updateTask = useCallback((id, updates) => {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } : t)))
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id !== id) return t
+        // Any path that flips `done` — Confirm's edit form, Board's drag —
+        // gets the same completedAt bookkeeping as toggleDone, so Weekly
+        // Review sees an accurate completion date regardless of which
+        // screen someone completed the task from.
+        if (!('done' in updates) || updates.done === t.done) return { ...t, ...updates }
+        return { ...t, ...updates, completedAt: updates.done ? new Date().toISOString() : null }
+      }),
+    )
   }, [])
 
   const removeTask = useCallback((id) => {
@@ -292,7 +311,8 @@ export function useTasks(userId) {
           const has = dates.includes(date)
           return { ...t, completedDates: has ? dates.filter((d) => d !== date) : [...dates, date] }
         }
-        return { ...t, done: !t.done }
+        const done = !t.done
+        return { ...t, done, completedAt: done ? new Date().toISOString() : null }
       }),
     )
   }, [])
@@ -377,7 +397,7 @@ export function useTasks(userId) {
           const dates = t.completedDates ?? []
           return dates.includes(today) ? t : { ...t, completedDates: [...dates, today] }
         }
-        return { ...t, done: true }
+        return t.done ? t : { ...t, done: true, completedAt: new Date().toISOString() }
       }),
     )
   }, [])

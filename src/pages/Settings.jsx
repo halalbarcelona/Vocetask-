@@ -299,6 +299,11 @@ export default function Settings() {
             />
             <PremiumRow
               isPremium={isPremium}
+              label="Weekly review"
+              onClick={() => (isPremium ? navigate('/review') : navigate('/upgrade'))}
+            />
+            <PremiumRow
+              isPremium={isPremium}
               label="Habit tracking"
               onClick={() => (isPremium ? navigate('/habits') : navigate('/upgrade'))}
             />

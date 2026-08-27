@@ -40,6 +40,7 @@ function useCommands() {
       { id: 'habits', label: 'Habits', group: 'Go to', Icon: FlameIcon, premium: true, run: () => navigate('/habits') },
       { id: 'board', label: 'Board', group: 'Go to', Icon: ColumnsIcon, premium: true, run: () => navigate('/board') },
       { id: 'stats', label: 'Productivity report', group: 'Go to', Icon: ChartIcon, premium: true, run: () => navigate('/stats') },
+      { id: 'review', label: 'Weekly review', group: 'Go to', Icon: ChartIcon, premium: true, run: () => navigate('/review') },
       { id: 'templates', label: 'Task templates', group: 'Go to', Icon: LayersIcon, premium: true, run: () => navigate('/templates') },
       { id: 'filters', label: 'Filters', group: 'Go to', Icon: FilterIcon, premium: true, run: () => navigate('/filters') },
       { id: 'sync', label: 'Sync across devices', group: 'Go to', Icon: RepeatIcon, premium: true, run: () => navigate('/sync') },

@@ -387,17 +387,12 @@ a {
   min-width: 0;
 }
 
-.task-card__meta .chip::before {
-  content: '';
+.chip__dot {
   width: 6px;
   height: 6px;
   flex-shrink: 0;
   border-radius: var(--radius-full);
-  background: var(--text-muted);
 }
-
-.task-card__meta .chip--personal::before { background: var(--personal); }
-.task-card__meta .chip--work::before { background: var(--work); }
 
 .task-card__meta-dot {
   color: var(--border-strong);
@@ -472,14 +467,6 @@ a {
   flex-shrink: 0;
 }
 
-.chip--personal {
-  color: var(--personal);
-}
-
-.chip--work {
-  color: var(--work);
-}
-
 /* A tappable category chip is a form control, so it gets the same pill shape as
    the Priority and Repeat chips sitting right below it. The read-only chip in a
    task row stays plain text — different job, different treatment. */
@@ -494,16 +481,6 @@ a {
   border-color: currentColor;
   background: var(--surface);
   font-weight: 600;
-}
-
-.chip--selected.chip--personal {
-  color: var(--personal);
-  background: var(--personal-soft);
-}
-
-.chip--selected.chip--work {
-  color: var(--work);
-  background: var(--work-soft);
 }
 
 .chip-row {

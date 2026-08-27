@@ -37,7 +37,7 @@ function toggleIn(list, value) {
 }
 
 function FilterBuilder({ initial, onCancel, onSave }) {
-  const { categories } = useCategoriesContext()
+  const { categories, colorForCategory } = useCategoriesContext()
   const { labels } = useLabelsContext()
   const { tasks } = useTasksContext()
   const [name, setName] = useState(initial?.name ?? '')
@@ -66,6 +66,7 @@ function FilterBuilder({ initial, onCancel, onSave }) {
             <CategoryChip
               key={category}
               category={category}
+              color={colorForCategory(category)}
               selected={criteria.categories.includes(category)}
               onClick={() => setCriteria((c) => ({ ...c, categories: toggleIn(c.categories, category) }))}
             />

@@ -4,6 +4,7 @@ import LabelChip from './LabelChip'
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon, PencilIcon, RepeatIcon, TrashIcon } from './icons'
 import { formatTimeLabel, todayISO, tomorrowISO } from '../utils/dateUtils'
 import { useLabelsContext } from '../hooks/LabelsContext'
+import { useCategoriesContext } from '../hooks/CategoriesContext'
 import { formatDuration } from '../utils/duration'
 
 export default function TaskItem({
@@ -23,6 +24,7 @@ export default function TaskItem({
 }) {
   const [expanded, setExpanded] = useState(false)
   const { colorFor } = useLabelsContext()
+  const { colorForCategory } = useCategoriesContext()
 
   const isRecurring = task.recurrence && task.recurrence !== 'none'
   const isDone = isRecurring ? (task.completedDates ?? []).includes(todayISO()) : task.done
@@ -77,7 +79,7 @@ export default function TaskItem({
               <span className="task-card__meta-item">{formatDuration(task.durationMinutes)}</span>
             )}
             {task.durationMinutes > 0 && <span className="task-card__meta-dot">·</span>}
-            <CategoryChip category={task.category} />
+            <CategoryChip category={task.category} color={colorForCategory(task.category)} />
             {labels.length > 0 && <span className="task-card__meta-dot">·</span>}
             {labels.slice(0, 3).map((name) => (
               <LabelChip key={name} name={name} color={colorFor(name)} />

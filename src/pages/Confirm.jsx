@@ -69,7 +69,7 @@ export default function Confirm() {
   const navigate = useNavigate()
   const { tasks, draftTask, setDraftTask, addTask, updateTask, clearDraft } = useTasksContext()
   const { isPremium } = usePremiumContext()
-  const { categories, addCategory } = useCategoriesContext()
+  const { categories, addCategory, colorForCategory } = useCategoriesContext()
   const { labels, addLabel } = useLabelsContext()
   const { saveTemplate } = useTemplates()
   const recorder = useVoiceRecorder()
@@ -293,6 +293,7 @@ export default function Confirm() {
                 <CategoryChip
                   key={category}
                   category={category}
+                  color={colorForCategory(category)}
                   selected={draftTask.category === category}
                   onClick={() => updateDraft({ category })}
                 />

@@ -24,6 +24,7 @@ import AccountSettings from './pages/AccountSettings'
 import Privacy from './pages/Privacy'
 import Stats from './pages/Stats'
 import Habits from './pages/Habits'
+import Board from './pages/Board'
 import Templates from './pages/Templates'
 import TrialEnded from './pages/TrialEnded'
 import VoiceTest from './pages/VoiceTest'
@@ -87,6 +88,7 @@ export default function App() {
                         <Route path="/upgrade-success" element={<UpgradeSuccess />} />
                         <Route path="/stats" element={<Stats />} />
                         <Route path="/habits" element={<Habits />} />
+                        <Route path="/board" element={<Board />} />
                         <Route path="/templates" element={<Templates />} />
                         <Route path="/trial-ended" element={<TrialEnded />} />
                         <Route path="/voice-test" element={<VoiceTest />} />

@@ -6,6 +6,7 @@ import { usePremiumContext } from '../hooks/PremiumContext'
 import {
   CalendarIcon,
   ChartIcon,
+  ColumnsIcon,
   FilterIcon,
   FlameIcon,
   HomeIcon,
@@ -37,6 +38,7 @@ function useCommands() {
       { id: 'calendar', label: 'Calendar', group: 'Go to', Icon: CalendarIcon, run: () => navigate('/calendar') },
       { id: 'focus', label: 'Focus timer', group: 'Go to', Icon: TimerIcon, premium: true, run: () => navigate('/focus') },
       { id: 'habits', label: 'Habits', group: 'Go to', Icon: FlameIcon, premium: true, run: () => navigate('/habits') },
+      { id: 'board', label: 'Board', group: 'Go to', Icon: ColumnsIcon, premium: true, run: () => navigate('/board') },
       { id: 'stats', label: 'Productivity report', group: 'Go to', Icon: ChartIcon, premium: true, run: () => navigate('/stats') },
       { id: 'templates', label: 'Task templates', group: 'Go to', Icon: LayersIcon, premium: true, run: () => navigate('/templates') },
       { id: 'filters', label: 'Filters', group: 'Go to', Icon: FilterIcon, premium: true, run: () => navigate('/filters') },

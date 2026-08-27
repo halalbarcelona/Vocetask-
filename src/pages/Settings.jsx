@@ -328,6 +328,11 @@ export default function Settings() {
               label={t('focusTimer')}
               onClick={() => (isPremium ? navigate('/focus') : navigate('/upgrade'))}
             />
+            <PremiumRow
+              isPremium={isPremium}
+              label="Board"
+              onClick={() => (isPremium ? navigate('/board') : navigate('/upgrade'))}
+            />
           </div>
         </section>
 

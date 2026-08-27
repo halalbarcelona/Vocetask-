@@ -1312,6 +1312,14 @@ a {
   margin: 0 0 var(--s4);
 }
 
+.insight-banner {
+  font-size: var(--t-sm);
+  color: var(--text-muted);
+  margin: 0 0 var(--s4);
+  padding-left: var(--s3);
+  border-left: 2px solid var(--border-strong);
+}
+
 .streak-banner__flame {
   font-size: var(--t-lg);
 }

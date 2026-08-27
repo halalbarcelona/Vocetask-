@@ -18,7 +18,7 @@ import {
 } from '../components/icons'
 import { formatDateLabel, formatTimeLabel, todayISO } from '../utils/dateUtils'
 import { isDueOn, isOverdue } from '../utils/recurrence'
-import { computeStreak } from '../utils/stats'
+import { computeStreak, dailyInsight } from '../utils/stats'
 import { speakDailyRecap } from '../utils/speak'
 import { checkMilestone } from '../utils/milestones'
 import { fixSpeech } from '../utils/speechFix'
@@ -159,6 +159,7 @@ export default function Home() {
 
   const todayTaskIds = todayTasks.map((t) => t.id)
   const streak = computeStreak(tasks)
+  const insight = dailyInsight(tasks, today)
 
   // Categories in use across everything the list can show — today's tasks and
   // overdue ones. Built from today alone, an overdue task in some other
@@ -390,6 +391,8 @@ export default function Home() {
             {t('dayStreak', streak)}
           </p>
         )}
+
+        {insight && <p className="insight-banner">{insight}</p>}
 
         <div className="search-bar">
           <SearchIcon />

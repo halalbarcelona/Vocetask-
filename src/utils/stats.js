@@ -1,5 +1,5 @@
 import { isoToDate, toISODate } from './dateUtils'
-import { isDueOn } from './recurrence'
+import { isDueOn, isOverdue } from './recurrence'
 
 function completionDatesSet(tasks) {
   const dates = new Set()
@@ -204,4 +204,26 @@ export function mostProductiveTimeOfDay(tasks) {
     counts.set(bucket, (counts.get(bucket) ?? 0) + 1)
   }
   return [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0]
+}
+
+function isTaskDone(task, today) {
+  return task.recurrence && task.recurrence !== 'none' ? (task.completedDates ?? []).includes(today) : task.done
+}
+
+// One deterministic line, or none — never a fake AI voice, and never
+// forced when nothing actually needs saying. Home's streak banner already
+// covers streaks, so this deliberately doesn't repeat that signal; it only
+// surfaces the two things a day-to-day glance at Home can't already see:
+// how much high-priority load is sitting on today, and whether overdue
+// work has piled up enough to be worth a deliberate look.
+export function dailyInsight(tasks, today) {
+  const highPriorityToday = tasks.filter((t) => t.priority === 'high' && !isTaskDone(t, today) && isDueOn(t, today)).length
+  if (highPriorityToday > 0) {
+    return `${highPriorityToday} high-priority task${highPriorityToday === 1 ? '' : 's'} due today.`
+  }
+  const overdueCount = tasks.filter((t) => isOverdue(t, today)).length
+  if (overdueCount >= 3) {
+    return `${overdueCount} tasks are overdue — worth a quick triage.`
+  }
+  return null
 }

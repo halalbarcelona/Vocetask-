@@ -1,4 +1,4 @@
-import { toISODate } from './dateUtils'
+import { isoToDate, toISODate } from './dateUtils'
 import { isDueOn } from './recurrence'
 
 function completionDatesSet(tasks) {
@@ -145,4 +145,63 @@ export function completedInLastDays(tasks, days = 7) {
     }
   }
   return completed.sort((a, b) => b.date.localeCompare(a.date))
+}
+
+const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+// Requiring a handful of data points before naming a "most productive" day
+// or time keeps a brand-new account from getting told its most productive
+// day is Tuesday off a single completed task.
+const MIN_SAMPLES = 5
+
+// Every completion date this app can see, one-off and recurring alike —
+// day-of-week doesn't need a time, so completedDates (dates only) count
+// here even though they can't feed the time-of-day version below.
+function allCompletionDates(tasks) {
+  const dates = []
+  for (const task of tasks) {
+    if (task.recurrence && task.recurrence !== 'none') {
+      dates.push(...(task.completedDates ?? []))
+    } else if (task.done && task.completedAt) {
+      dates.push(toISODate(new Date(task.completedAt)))
+    }
+  }
+  return dates
+}
+
+// Returns the weekday name with the most completions ever recorded, or null
+// if there isn't enough history yet to say anything meaningful.
+export function mostProductiveDayOfWeek(tasks) {
+  const dates = allCompletionDates(tasks)
+  if (dates.length < MIN_SAMPLES) return null
+  const counts = new Array(7).fill(0)
+  for (const iso of dates) counts[isoToDate(iso).getDay()] += 1
+  const best = counts.indexOf(Math.max(...counts))
+  return counts[best] === 0 ? null : WEEKDAY_NAMES[best]
+}
+
+const TIME_BUCKETS = [
+  { label: 'Night (9pm–5am)', from: 21, to: 5 },
+  { label: 'Morning (5am–12pm)', from: 5, to: 12 },
+  { label: 'Afternoon (12pm–5pm)', from: 12, to: 17 },
+  { label: 'Evening (5pm–9pm)', from: 17, to: 21 },
+]
+
+function bucketFor(hour) {
+  return TIME_BUCKETS.find(({ from, to }) => (from < to ? hour >= from && hour < to : hour >= from || hour < to))
+}
+
+// Only one-off tasks carry a real timestamp (completedAt) — completedDates
+// on recurring tasks is date-only, so recurring completions can't say
+// anything about time of day and are correctly left out here.
+export function mostProductiveTimeOfDay(tasks) {
+  const hours = tasks
+    .filter((t) => (!t.recurrence || t.recurrence === 'none') && t.done && t.completedAt)
+    .map((t) => new Date(t.completedAt).getHours())
+  if (hours.length < MIN_SAMPLES) return null
+  const counts = new Map()
+  for (const hour of hours) {
+    const bucket = bucketFor(hour).label
+    counts.set(bucket, (counts.get(bucket) ?? 0) + 1)
+  }
+  return [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0]
 }

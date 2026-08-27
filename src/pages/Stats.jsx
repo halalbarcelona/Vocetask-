@@ -3,7 +3,14 @@ import { useTasksContext } from '../hooks/TasksContext'
 import { usePremiumContext } from '../hooks/PremiumContext'
 import LockedOverlay from '../components/LockedOverlay'
 import { BackIcon } from '../components/icons'
-import { computeStreak, computeLongestStreak, completionRate, categoryBreakdown } from '../utils/stats'
+import {
+  computeStreak,
+  computeLongestStreak,
+  completionRate,
+  categoryBreakdown,
+  mostProductiveDayOfWeek,
+  mostProductiveTimeOfDay,
+} from '../utils/stats'
 
 export default function Stats() {
   const navigate = useNavigate()
@@ -15,6 +22,8 @@ export default function Stats() {
   const rate = completionRate(tasks, 7)
   const breakdown = categoryBreakdown(tasks)
   const maxCount = Math.max(1, ...breakdown.map(([, count]) => count))
+  const bestDay = mostProductiveDayOfWeek(tasks)
+  const bestTime = mostProductiveTimeOfDay(tasks)
 
   return (
     <div className="screen">
@@ -68,6 +77,26 @@ export default function Stats() {
             )}
           </div>
         </section>
+
+        {(bestDay || bestTime) && (
+          <section className="settings-group">
+            <h2 className="section-title">When you get things done</h2>
+            <div className="card">
+              {bestDay && (
+                <div className="stat-bar-row">
+                  <span className="stat-bar-row__label">Most productive day</span>
+                  <span className="stat-bar-row__count">{bestDay}</span>
+                </div>
+              )}
+              {bestTime && (
+                <div className="stat-bar-row">
+                  <span className="stat-bar-row__label">Most productive time</span>
+                  <span className="stat-bar-row__count">{bestTime}</span>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
         </LockedOverlay>
       </main>
     </div>

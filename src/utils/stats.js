@@ -206,6 +206,18 @@ export function mostProductiveTimeOfDay(tasks) {
   return [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0]
 }
 
+// Compares logged Focus-timer minutes against the upfront estimate, only
+// across tasks that actually have both — most tasks never touch the Focus
+// timer, so this stays silent rather than averaging in a bunch of zeros.
+export function estimateAccuracy(tasks) {
+  const pairs = tasks.filter((t) => t.durationMinutes > 0 && t.actualMinutes > 0)
+  if (pairs.length < MIN_SAMPLES) return null
+  const totalEstimated = pairs.reduce((sum, t) => sum + t.durationMinutes, 0)
+  const totalActual = pairs.reduce((sum, t) => sum + t.actualMinutes, 0)
+  const ratioPercent = Math.round((totalActual / totalEstimated) * 100)
+  return { sampleSize: pairs.length, ratioPercent }
+}
+
 function isTaskDone(task, today) {
   return task.recurrence && task.recurrence !== 'none' ? (task.completedDates ?? []).includes(today) : task.done
 }

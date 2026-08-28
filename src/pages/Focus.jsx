@@ -24,14 +24,19 @@ function formatClock(seconds) {
 // never leaves the display drifting from the actual time remaining.
 export default function Focus() {
   const navigate = useNavigate()
-  const { tasks } = useTasksContext()
+  const { tasks, updateTask } = useTasksContext()
   const { isPremium } = usePremiumContext()
   const [mode, setMode] = useState('focus')
   const [taskId, setTaskId] = useState('')
   const [endAt, setEndAt] = useState(null)
   const [remaining, setRemaining] = useState(MODES[0].minutes * 60)
   const [sessionsDone, setSessionsDone] = useState(0)
+  const [lastLogged, setLastLogged] = useState(null)
   const intervalRef = useRef(null)
+  const taskIdRef = useRef(taskId)
+  taskIdRef.current = taskId
+  const tasksRef = useRef(tasks)
+  tasksRef.current = tasks
 
   const today = todayISO()
   const activeTasks = useMemo(
@@ -52,10 +57,23 @@ export default function Focus() {
       setRemaining(left)
       if (left <= 0) {
         setEndAt(null)
-        if (mode === 'focus') setSessionsDone((n) => n + 1)
+        if (mode === 'focus') {
+          setSessionsDone((n) => n + 1)
+          // Only a naturally-completed session counts — pausing or resetting
+          // early never logs partial time, keeping the bookkeeping honest.
+          const activeTaskId = taskIdRef.current
+          if (activeTaskId) {
+            const current = tasksRef.current.find((t) => t.id === activeTaskId)
+            if (current) {
+              updateTask(activeTaskId, { actualMinutes: (current.actualMinutes ?? 0) + modeMinutes })
+              setLastLogged({ title: current.title || 'Untitled task', minutes: modeMinutes })
+            }
+          }
+        }
       }
     }, 250)
     return () => clearInterval(intervalRef.current)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRunning, endAt, mode])
 
   const switchMode = (value) => {
@@ -154,6 +172,12 @@ export default function Focus() {
           {sessionsDone > 0 && (
             <p className="record-hint">
               <CheckIcon width={13} height={13} /> {sessionsDone} focus session{sessionsDone === 1 ? '' : 's'} today
+            </p>
+          )}
+
+          {lastLogged && (
+            <p className="record-hint">
+              Logged {lastLogged.minutes} min to "{lastLogged.title}"
             </p>
           )}
         </LockedOverlay>

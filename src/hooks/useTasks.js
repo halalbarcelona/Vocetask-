@@ -48,6 +48,10 @@ function normalizeTask(task) {
     // but going into the sync payload means a live schema migration, which
     // this pass is deliberately not risking unsupervised.
     completedAt: typeof task.completedAt === 'string' ? task.completedAt : null,
+    // Minutes actually spent, accumulated from completed Focus sessions —
+    // separate from durationMinutes (the upfront estimate). Local-only, same
+    // reasoning as voiceNote/completedAt.
+    actualMinutes: Number.isFinite(task.actualMinutes) ? task.actualMinutes : 0,
   }
 }
 

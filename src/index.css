@@ -823,6 +823,12 @@ a {
   gap: var(--s2);
 }
 
+.field__hint {
+  font-size: var(--t-sm);
+  color: var(--text-muted);
+  margin: var(--s2) 0 0;
+}
+
 .field__label-badge {
   display: inline-flex;
   align-items: center;

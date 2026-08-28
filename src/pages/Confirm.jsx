@@ -390,6 +390,18 @@ export default function Confirm() {
                 </button>
               ))}
             </div>
+            {draftTask.actualMinutes > 0 && (
+              <p className="field__hint">
+                {draftTask.actualMinutes} min actually logged via Focus timer
+                {draftTask.durationMinutes > 0
+                  ? draftTask.actualMinutes > draftTask.durationMinutes
+                    ? ` — ${draftTask.actualMinutes - draftTask.durationMinutes} over estimate`
+                    : draftTask.actualMinutes < draftTask.durationMinutes
+                      ? ` — ${draftTask.durationMinutes - draftTask.actualMinutes} under estimate`
+                      : ' — right on estimate'
+                  : ''}
+              </p>
+            )}
           </div>
 
           <div className="field">

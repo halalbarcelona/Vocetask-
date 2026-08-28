@@ -10,6 +10,7 @@ import {
   categoryBreakdown,
   mostProductiveDayOfWeek,
   mostProductiveTimeOfDay,
+  estimateAccuracy,
 } from '../utils/stats'
 
 export default function Stats() {
@@ -24,6 +25,7 @@ export default function Stats() {
   const maxCount = Math.max(1, ...breakdown.map(([, count]) => count))
   const bestDay = mostProductiveDayOfWeek(tasks)
   const bestTime = mostProductiveTimeOfDay(tasks)
+  const accuracy = estimateAccuracy(tasks)
 
   return (
     <div className="screen">
@@ -94,6 +96,26 @@ export default function Stats() {
                   <span className="stat-bar-row__count">{bestTime}</span>
                 </div>
               )}
+            </div>
+          </section>
+        )}
+
+        {accuracy && (
+          <section className="settings-group">
+            <h2 className="section-title">Time estimates</h2>
+            <div className="card">
+              <div className="stat-bar-row">
+                <span className="stat-bar-row__label">
+                  Based on {accuracy.sampleSize} task{accuracy.sampleSize === 1 ? '' : 's'} logged via Focus
+                </span>
+                <span className="stat-bar-row__count">
+                  {accuracy.ratioPercent === 100
+                    ? 'On target'
+                    : accuracy.ratioPercent > 100
+                      ? `${accuracy.ratioPercent - 100}% over`
+                      : `${100 - accuracy.ratioPercent}% under`}
+                </span>
+              </div>
             </div>
           </section>
         )}

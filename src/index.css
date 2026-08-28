@@ -376,6 +376,13 @@ a {
   flex-shrink: 0;
 }
 
+.task-card__meta-item--blocked {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--danger);
+}
+
 /* Inside the meta line the list reads as a coloured dot plus plain text, so
    the row keeps one text colour and the category still stays scannable. */
 .task-card__meta .chip {

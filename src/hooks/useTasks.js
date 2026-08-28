@@ -52,6 +52,11 @@ function normalizeTask(task) {
     // separate from durationMinutes (the upfront estimate). Local-only, same
     // reasoning as voiceNote/completedAt.
     actualMinutes: Number.isFinite(task.actualMinutes) ? task.actualMinutes : 0,
+    // Ids of other tasks that must be done before this one can be. Local-only
+    // — a cross-device id could dangle if the referenced task hasn't synced
+    // yet, and openBlockerFor already treats a missing id as resolved, so
+    // nothing breaks by keeping this device-scoped for now.
+    blockedBy: Array.isArray(task.blockedBy) ? task.blockedBy.filter((id) => typeof id === 'string') : [],
   }
 }
 
@@ -276,6 +281,7 @@ export function useTasks(userId) {
       durationMinutes: task.durationMinutes ?? 0,
       voiceNote: task.voiceNote ?? null,
       completedAt: task.done ? new Date().toISOString() : null,
+      blockedBy: task.blockedBy ?? [],
     }
     setTasks((prev) => [...prev, newTask])
     return newTask

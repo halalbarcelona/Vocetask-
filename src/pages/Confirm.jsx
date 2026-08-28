@@ -112,6 +112,16 @@ export default function Confirm() {
     return [...new Set(inSameCategory.map((t) => t.section))]
   }, [tasks, draftTask.category])
 
+  // Only other, not-yet-done tasks make sense as a blocker — depending on
+  // yourself or on something already finished can't ever mean anything.
+  const candidateBlockers = useMemo(
+    () =>
+      tasks
+        .filter((t) => t.id !== draftTask.id && !t.done)
+        .sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999')),
+    [tasks, draftTask.id],
+  )
+
   // Only worth suggesting once there's a date and a duration to fit — a
   // task with no length has nothing to schedule around.
   const suggestedTime = useMemo(() => {
@@ -184,6 +194,14 @@ export default function Confirm() {
   }
 
   const handleRecordVoiceNote = () => requirePremium(() => recorder.start())
+
+  const handleSelectBlocker = (id) => {
+    if (id && !isPremium) {
+      navigate('/upgrade')
+      return
+    }
+    updateDraft({ blockedBy: id ? [id] : [] })
+  }
 
   const handleStopVoiceNote = async () => {
     const dataUrl = await recorder.stop()
@@ -403,6 +421,24 @@ export default function Confirm() {
               </p>
             )}
           </div>
+
+          {candidateBlockers.length > 0 && (
+            <label className="field">
+              <PremiumLabel isPremium={isPremium}>Blocked by</PremiumLabel>
+              <select
+                className="field__input"
+                value={draftTask.blockedBy?.[0] ?? ''}
+                onChange={(e) => handleSelectBlocker(e.target.value)}
+              >
+                <option value="">Not blocked</option>
+                {candidateBlockers.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.title || 'Untitled task'}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
 
           <div className="field">
             <PremiumLabel isPremium={isPremium}>Repeat</PremiumLabel>

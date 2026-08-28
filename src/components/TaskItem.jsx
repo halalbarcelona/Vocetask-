@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import CategoryChip from './CategoryChip'
 import LabelChip from './LabelChip'
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon, PencilIcon, RepeatIcon, TrashIcon } from './icons'
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon, LockIcon, PencilIcon, RepeatIcon, TrashIcon } from './icons'
 import { formatTimeLabel, todayISO, tomorrowISO } from '../utils/dateUtils'
 import { useLabelsContext } from '../hooks/LabelsContext'
 import { useCategoriesContext } from '../hooks/CategoriesContext'
+import { useTasksContext } from '../hooks/TasksContext'
 import { formatDuration } from '../utils/duration'
+import { openBlockerFor } from '../utils/dependencies'
 
 export default function TaskItem({
   task,
@@ -25,6 +27,7 @@ export default function TaskItem({
   const [expanded, setExpanded] = useState(false)
   const { colorFor } = useLabelsContext()
   const { colorForCategory } = useCategoriesContext()
+  const { tasks } = useTasksContext()
 
   const isRecurring = task.recurrence && task.recurrence !== 'none'
   const isDone = isRecurring ? (task.completedDates ?? []).includes(todayISO()) : task.done
@@ -33,6 +36,7 @@ export default function TaskItem({
   const labels = task.labels ?? []
   const hasExpandable = subtasks.length > 0 || Boolean(task.notes) || Boolean(task.voiceNote)
   const priority = task.priority && task.priority !== 'none' ? task.priority : null
+  const blocker = isDone ? null : openBlockerFor(task, tasks, todayISO())
 
   const handleBodyClick = () => {
     if (selectMode) {
@@ -40,6 +44,13 @@ export default function TaskItem({
     } else if (hasExpandable) {
       setExpanded((e) => !e)
     }
+  }
+
+  const handleToggle = () => {
+    if (blocker && !window.confirm(`This task is blocked by "${blocker.title || 'another task'}". Mark done anyway?`)) {
+      return
+    }
+    onToggle(task.id)
   }
 
   return (
@@ -60,7 +71,7 @@ export default function TaskItem({
             className={`task-card__checkbox${isDone ? ' task-card__checkbox--checked' : ''}${
               priority && !isDone ? ` task-card__checkbox--${priority}` : ''
             }`}
-            onClick={() => onToggle(task.id)}
+            onClick={handleToggle}
             aria-label={isDone ? 'Mark task as not done' : 'Mark task as done'}
           >
             {isDone && <CheckIcon />}
@@ -88,6 +99,12 @@ export default function TaskItem({
             {subtasks.length > 0 && (
               <span className="task-card__meta-item">
                 {doneSubtasks}/{subtasks.length} done
+              </span>
+            )}
+            {blocker && <span className="task-card__meta-dot">·</span>}
+            {blocker && (
+              <span className="task-card__meta-item task-card__meta-item--blocked">
+                <LockIcon width={11} height={11} /> Blocked by "{blocker.title || 'another task'}"
               </span>
             )}
           </p>

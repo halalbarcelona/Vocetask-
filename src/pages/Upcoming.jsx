@@ -25,7 +25,7 @@ export default function Upcoming() {
     navigate('/confirm')
   }
 
-  const handleSnooze = (id, newDate) => updateTask(id, { date: newDate })
+  const handleReschedule = (id, date, time) => updateTask(id, time ? { date, time } : { date })
 
   const days = useMemo(() => {
     const list = []
@@ -81,7 +81,7 @@ export default function Upcoming() {
                       onToggle={toggleDone}
                       onEdit={handleEdit}
                       onToggleSubtask={toggleSubtask}
-                      onSnooze={handleSnooze}
+                      onReschedule={handleReschedule}
                       isPremium={isPremium}
                     />
                   ))}

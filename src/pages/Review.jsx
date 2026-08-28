@@ -31,7 +31,7 @@ export default function Review() {
     setDraftTask({ ...task })
     navigate('/confirm')
   }
-  const handleSnooze = (id, newDate) => updateTask(id, { date: newDate })
+  const handleReschedule = (id, date, time) => updateTask(id, time ? { date, time } : { date })
 
   const overdue = useMemo(
     () => tasks.filter((t) => isOverdue(t, today)).sort((a, b) => a.date.localeCompare(b.date)),
@@ -133,7 +133,7 @@ export default function Review() {
                     onToggle={toggleDone}
                     onEdit={handleEdit}
                     onToggleSubtask={toggleSubtask}
-                    onSnooze={handleSnooze}
+                    onReschedule={handleReschedule}
                     isPremium={isPremium}
                   />
                 ))}
@@ -154,7 +154,7 @@ export default function Review() {
                     onToggle={toggleDone}
                     onEdit={handleEdit}
                     onToggleSubtask={toggleSubtask}
-                    onSnooze={handleSnooze}
+                    onReschedule={handleReschedule}
                     isPremium={isPremium}
                   />
                 ))}

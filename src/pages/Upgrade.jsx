@@ -27,6 +27,8 @@ const FEATURES = [
   { label: 'Board (Kanban) view', free: '—', premium: 'Included' },
   { label: 'Timeline — 30-day agenda', free: '—', premium: 'Included' },
   { label: 'Time tracking (actual vs. estimated)', free: '—', premium: 'Included' },
+  { label: 'Next Best Action', free: '—', premium: 'Included' },
+  { label: 'Flexible rescheduling (later today, next free slot)', free: '—', premium: 'Included' },
   { label: 'Smart time suggestions', free: '—', premium: 'Included' },
   { label: 'Habit tracking', free: '—', premium: 'Included' },
   { label: 'Notes on tasks', free: '—', premium: 'Included' },

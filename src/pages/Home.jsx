@@ -34,6 +34,7 @@ import { matchesFilter } from '../utils/filters'
 import { parseQuickAddSyntax } from '../utils/quickAddSyntax'
 import { parseVoiceCommand } from '../utils/voiceParser'
 import OnboardingTour, { shouldShowOnboarding } from '../components/OnboardingTour'
+import NextBestActionCard from '../components/NextBestActionCard'
 
 const PRIORITY_RANK = { high: 3, medium: 2, low: 1, none: 0 }
 
@@ -236,7 +237,7 @@ export default function Home() {
     })
   }
 
-  const handleSnooze = (id, newDate) => updateTask(id, { date: newDate })
+  const handleReschedule = (id, date, time) => updateTask(id, time ? { date, time } : { date })
 
   // Typed entries get the same Hinglish date/time/recurrence/priority parsing
   // voice input already gets, plus Todoist-style #list @label !priority
@@ -385,6 +386,8 @@ export default function Home() {
           </button>
         )}
 
+        {!isSearching && !selectMode && isPremium && <NextBestActionCard />}
+
         {streak > 0 && (
           <p className="streak-banner">
             <FlameIcon width={14} height={14} />
@@ -429,7 +432,7 @@ export default function Home() {
                     onDelete={handleDelete}
                     onEdit={handleEdit}
                     onToggleSubtask={toggleSubtask}
-                    onSnooze={handleSnooze}
+                    onReschedule={handleReschedule}
                     isPremium={isPremium}
                     selectMode={selectMode}
                     selected={selectedIds.includes(task.id)}
@@ -533,7 +536,7 @@ export default function Home() {
                         onDelete={handleDelete}
                         onEdit={handleEdit}
                         onToggleSubtask={toggleSubtask}
-                        onSnooze={handleSnooze}
+                        onReschedule={handleReschedule}
                         isPremium={isPremium}
                         selectMode={selectMode}
                         selected={selectedIds.includes(task.id)}
@@ -557,7 +560,7 @@ export default function Home() {
                       onDelete={handleDelete}
                       onEdit={handleEdit}
                       onToggleSubtask={toggleSubtask}
-                      onSnooze={handleSnooze}
+                      onReschedule={handleReschedule}
                       isPremium={isPremium}
                       selectMode={selectMode}
                       selected={selectedIds.includes(task.id)}
@@ -626,7 +629,7 @@ export default function Home() {
                           onDelete={handleDelete}
                           onEdit={handleEdit}
                           onToggleSubtask={toggleSubtask}
-                          onSnooze={handleSnooze}
+                          onReschedule={handleReschedule}
                           isPremium={isPremium}
                           onReorder={sortByPriority ? undefined : (id, dir) => reorderTask(id, dir, todayTaskIds)}
                           isFirst={todayTaskIds.indexOf(task.id) === 0}
@@ -649,7 +652,7 @@ export default function Home() {
                       onDelete={handleDelete}
                       onEdit={handleEdit}
                       onToggleSubtask={toggleSubtask}
-                      onSnooze={handleSnooze}
+                      onReschedule={handleReschedule}
                       isPremium={isPremium}
                       onReorder={sortByPriority ? undefined : (id, dir) => reorderTask(id, dir, todayTaskIds)}
                       isFirst={todayTaskIds.indexOf(task.id) === 0}

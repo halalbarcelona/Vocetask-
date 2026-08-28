@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useTasksContext } from '../hooks/TasksContext'
 import { usePremiumContext } from '../hooks/PremiumContext'
 import LockedOverlay from '../components/LockedOverlay'
 import { BackIcon, CheckIcon } from '../components/icons'
-import { isDueOn } from '../utils/recurrence'
+import { isDueOn, isOverdue } from '../utils/recurrence'
 import { todayISO } from '../utils/dateUtils'
 
 const MODES = [
@@ -24,10 +24,14 @@ function formatClock(seconds) {
 // never leaves the display drifting from the actual time remaining.
 export default function Focus() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { tasks, updateTask } = useTasksContext()
   const { isPremium } = usePremiumContext()
   const [mode, setMode] = useState('focus')
-  const [taskId, setTaskId] = useState('')
+  // A caller (e.g. the Next Best Action card on Home) can hand off directly
+  // into a session for a specific task via navigation state, instead of
+  // making the user re-pick it from the dropdown below.
+  const [taskId, setTaskId] = useState(location.state?.taskId ?? '')
   const [endAt, setEndAt] = useState(null)
   const [remaining, setRemaining] = useState(MODES[0].minutes * 60)
   const [sessionsDone, setSessionsDone] = useState(0)
@@ -42,7 +46,9 @@ export default function Focus() {
   const activeTasks = useMemo(
     () =>
       tasks.filter(
-        (t) => isDueOn(t, today) && !(t.recurrence && t.recurrence !== 'none' ? (t.completedDates ?? []).includes(today) : t.done),
+        (t) =>
+          (isDueOn(t, today) || isOverdue(t, today)) &&
+          !(t.recurrence && t.recurrence !== 'none' ? (t.completedDates ?? []).includes(today) : t.done),
       ),
     [tasks, today],
   )

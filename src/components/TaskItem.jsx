@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import CategoryChip from './CategoryChip'
 import LabelChip from './LabelChip'
+import RescheduleMenu from './RescheduleMenu'
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon, LockIcon, PencilIcon, RepeatIcon, TrashIcon } from './icons'
-import { formatTimeLabel, todayISO, tomorrowISO } from '../utils/dateUtils'
+import { formatTimeLabel, todayISO } from '../utils/dateUtils'
 import { useLabelsContext } from '../hooks/LabelsContext'
 import { useCategoriesContext } from '../hooks/CategoriesContext'
 import { useTasksContext } from '../hooks/TasksContext'
@@ -17,7 +18,7 @@ export default function TaskItem({
   isFirst,
   isLast,
   onToggleSubtask,
-  onSnooze,
+  onReschedule,
   onEdit,
   isPremium,
   selectMode,
@@ -156,23 +157,8 @@ export default function TaskItem({
         )}
       </div>
 
-      {!selectMode && isPremium && onSnooze && !isDone && (
-        <div className="task-card__snooze-row">
-          <button type="button" className="task-card__snooze-btn" onClick={() => onSnooze(task.id, tomorrowISO())}>
-            Snooze to tomorrow
-          </button>
-          <button
-            type="button"
-            className="task-card__snooze-btn"
-            onClick={() => {
-              const d = new Date()
-              d.setDate(d.getDate() + 7)
-              onSnooze(task.id, d.toISOString().slice(0, 10))
-            }}
-          >
-            Snooze 1 week
-          </button>
-        </div>
+      {!selectMode && isPremium && onReschedule && !isDone && (
+        <RescheduleMenu task={task} onReschedule={(date, time) => onReschedule(task.id, date, time)} />
       )}
 
       {expanded && hasExpandable && (

@@ -338,6 +338,11 @@ export default function Settings() {
               label="Board"
               onClick={() => (isPremium ? navigate('/board') : navigate('/upgrade'))}
             />
+            <PremiumRow
+              isPremium={isPremium}
+              label="Timeline"
+              onClick={() => (isPremium ? navigate('/timeline') : navigate('/upgrade'))}
+            />
           </div>
         </section>
 

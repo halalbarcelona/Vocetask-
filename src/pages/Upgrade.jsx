@@ -25,6 +25,8 @@ const FEATURES = [
   { label: 'Upcoming — the 7-day view', free: '—', premium: 'Included' },
   { label: 'Focus timer', free: '—', premium: 'Included' },
   { label: 'Board (Kanban) view', free: '—', premium: 'Included' },
+  { label: 'Timeline — 30-day agenda', free: '—', premium: 'Included' },
+  { label: 'Time tracking (actual vs. estimated)', free: '—', premium: 'Included' },
   { label: 'Smart time suggestions', free: '—', premium: 'Included' },
   { label: 'Habit tracking', free: '—', premium: 'Included' },
   { label: 'Notes on tasks', free: '—', premium: 'Included' },

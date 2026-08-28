@@ -1,5 +1,6 @@
 import { useTasksContext } from '../hooks/TasksContext'
 import { usePreferencesContext } from '../hooks/PreferencesContext'
+import { useUILangContext } from '../hooks/UILangContext'
 import { suggestSlot } from '../utils/schedule'
 import { formatTimeLabel, toISODate, todayISO, tomorrowISO } from '../utils/dateUtils'
 
@@ -12,6 +13,7 @@ const NEXT_SLOT_SEARCH_DAYS = 14
 export default function RescheduleMenu({ task, onReschedule }) {
   const { tasks } = useTasksContext()
   const { workStartMinutes, workEndMinutes } = usePreferencesContext()
+  const { t } = useUILangContext()
 
   const now = new Date()
   const nowMinutes = now.getHours() * 60 + now.getMinutes()
@@ -55,11 +57,11 @@ export default function RescheduleMenu({ task, onReschedule }) {
           className="task-card__snooze-btn"
           onClick={() => onReschedule(today, laterTodayTime)}
         >
-          Later today ({formatTimeLabel(laterTodayTime)})
+          {t('laterTodayAt', formatTimeLabel(laterTodayTime))}
         </button>
       )}
       <button type="button" className="task-card__snooze-btn" onClick={() => onReschedule(tomorrowISO())}>
-        Tomorrow
+        {t('tomorrowOption')}
       </button>
       {nextSlot && (
         <button
@@ -67,7 +69,7 @@ export default function RescheduleMenu({ task, onReschedule }) {
           className="task-card__snooze-btn"
           onClick={() => onReschedule(nextSlot.date, nextSlot.time)}
         >
-          Next free slot — {formatTimeLabel(nextSlot.time)}
+          {t('nextFreeSlot', formatTimeLabel(nextSlot.time))}
         </button>
       )}
       <button
@@ -79,10 +81,10 @@ export default function RescheduleMenu({ task, onReschedule }) {
           onReschedule(toISODate(d))
         }}
       >
-        1 week
+        {t('oneWeekOption')}
       </button>
       <label className="task-card__snooze-btn task-card__snooze-btn--date">
-        Custom date
+        {t('customDateOption')}
         <input
           type="date"
           className="task-card__snooze-date-input"

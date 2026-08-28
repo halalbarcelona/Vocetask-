@@ -105,6 +105,16 @@ export const STRINGS = {
     email: 'Email',
     createAccount: 'Create account',
     stayLocalHint: 'Everything stays on this device — no data leaves your browser except when you upgrade.',
+
+    nextUp: 'Next up',
+    startFocus: 'Start Focus',
+    reschedule: 'Reschedule',
+    dismiss: 'Dismiss',
+    laterTodayAt: (time) => `Later today (${time})`,
+    tomorrowOption: 'Tomorrow',
+    nextFreeSlot: (time) => `Next free slot — ${time}`,
+    oneWeekOption: '1 week',
+    customDateOption: 'Custom date',
   },
   hi: {
     navHome: 'होम',
@@ -195,5 +205,15 @@ export const STRINGS = {
     email: 'ईमेल',
     createAccount: 'अकाउंट बनाएं',
     stayLocalHint: 'सब कुछ इसी डिवाइस पर रहता है — अपग्रेड करने के अलावा कोई डेटा आपके ब्राउज़र से बाहर नहीं जाता।',
+
+    nextUp: 'अगला काम',
+    startFocus: 'फोकस शुरू करें',
+    reschedule: 'फिर से शेड्यूल करें',
+    dismiss: 'हटाएं',
+    laterTodayAt: (time) => `आज बाद में (${time})`,
+    tomorrowOption: 'कल',
+    nextFreeSlot: (time) => `अगला खाली समय — ${time}`,
+    oneWeekOption: '1 हफ़्ता',
+    customDateOption: 'कोई और तारीख',
   },
 }

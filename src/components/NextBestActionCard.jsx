@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTasksContext } from '../hooks/TasksContext'
 import { usePreferencesContext } from '../hooks/PreferencesContext'
+import { useUILangContext } from '../hooks/UILangContext'
 import RescheduleMenu from './RescheduleMenu'
 import { CheckIcon, TimerIcon } from './icons'
 import { nextBestAction } from '../utils/nextAction'
@@ -27,6 +28,7 @@ export default function NextBestActionCard() {
   const navigate = useNavigate()
   const { tasks, toggleDone, updateTask } = useTasksContext()
   const { workEndMinutes } = usePreferencesContext()
+  const { t } = useUILangContext()
   const [showReschedule, setShowReschedule] = useState(false)
   const [dismissed, setDismissed] = useState(loadDismissed)
 
@@ -55,7 +57,7 @@ export default function NextBestActionCard() {
 
   return (
     <section className="nba-card">
-      <p className="nba-card__eyebrow">Next up</p>
+      <p className="nba-card__eyebrow">{t('nextUp')}</p>
       <p className="nba-card__title">{task.title || 'Untitled task'}</p>
       <p className="nba-card__meta">
         {task.durationMinutes > 0 ? formatDuration(task.durationMinutes) : null}
@@ -69,16 +71,16 @@ export default function NextBestActionCard() {
       </ul>
       <div className="nba-card__actions">
         <button type="button" className="button button--primary button--compact" onClick={handleStartFocus}>
-          <TimerIcon width={14} height={14} /> Start Focus
+          <TimerIcon width={14} height={14} /> {t('startFocus')}
         </button>
         <button type="button" className="nba-card__ghost-btn" onClick={handleComplete}>
-          <CheckIcon width={13} height={13} /> Complete
+          <CheckIcon width={13} height={13} /> {t('complete')}
         </button>
         <button type="button" className="nba-card__ghost-btn" onClick={() => setShowReschedule((v) => !v)}>
-          Reschedule
+          {t('reschedule')}
         </button>
         <button type="button" className="nba-card__ghost-btn" onClick={handleDismiss}>
-          Dismiss
+          {t('dismiss')}
         </button>
       </div>
       {showReschedule && <RescheduleMenu task={task} onReschedule={handleReschedule} />}

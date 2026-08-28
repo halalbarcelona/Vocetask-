@@ -224,11 +224,11 @@ function isTaskDone(task, today) {
 
 // One deterministic line, or none — never a fake AI voice, and never
 // forced when nothing actually needs saying. Home's streak banner already
-// covers streaks, so this deliberately doesn't repeat that signal; it only
-// surfaces the two things a day-to-day glance at Home can't already see:
-// how much high-priority load is sitting on today, and whether overdue
-// work has piled up enough to be worth a deliberate look.
-export function dailyInsight(tasks, today) {
+// covers streaks, so this deliberately doesn't repeat that signal. The
+// urgency signals (high-priority load, overdue pile-up) always take
+// priority; the morning/evening ones are a fallback for the rest of the
+// day, since they're about planning and wind-down rather than urgency.
+export function dailyInsight(tasks, today, hour = new Date().getHours()) {
   const highPriorityToday = tasks.filter((t) => t.priority === 'high' && !isTaskDone(t, today) && isDueOn(t, today)).length
   if (highPriorityToday > 0) {
     return `${highPriorityToday} high-priority task${highPriorityToday === 1 ? '' : 's'} due today.`
@@ -236,6 +236,16 @@ export function dailyInsight(tasks, today) {
   const overdueCount = tasks.filter((t) => isOverdue(t, today)).length
   if (overdueCount >= 3) {
     return `${overdueCount} tasks are overdue — worth a quick triage.`
+  }
+
+  const dueToday = tasks.filter((t) => isDueOn(t, today) && !isTaskDone(t, today))
+  if (hour < 11) {
+    const unscheduled = dueToday.filter((t) => !t.time).length
+    if (unscheduled > 0) {
+      return `${unscheduled} task${unscheduled === 1 ? '' : 's'} today ${unscheduled === 1 ? "doesn't" : "don't"} have a time set yet.`
+    }
+  } else if (hour >= 18 && dueToday.length > 0) {
+    return `${dueToday.length} task${dueToday.length === 1 ? '' : 's'} still open for today.`
   }
   return null
 }

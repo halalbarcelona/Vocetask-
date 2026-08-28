@@ -10,6 +10,7 @@ import { findBestMatchingTask, parseVoiceAction } from '../utils/voiceAction'
 import { fixSpeech } from '../utils/speechFix'
 import { parseQuickAddSyntax } from '../utils/quickAddSyntax'
 import { otherLang, useVoiceLang, VOICE_LANGS } from '../hooks/useVoiceLang'
+import { useMicLevel } from '../hooks/useMicLevel'
 
 // Speech engines rank alternatives by acoustic confidence, which handles
 // code-switched Hindi-English badly — the top pick is often the one our
@@ -86,6 +87,7 @@ export default function Record() {
 
   const { lang, setLang } = useVoiceLang()
   const supportsSpeech = Boolean(SpeechRecognitionAPI)
+  const { levels: micLevels, isLive: micLevelIsLive } = useMicLevel(isListening)
 
   useEffect(() => {
     if (!supportsSpeech) return undefined
@@ -321,10 +323,19 @@ export default function Record() {
           <MicIcon width={40} height={40} />
         </button>
 
-        <div className={`waveform${isListening ? ' waveform--active' : ''}`} aria-hidden="true">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <span key={i} className="waveform__bar" style={{ animationDelay: `${i * 0.09}s` }} />
-          ))}
+        {/* Bar heights come from the live mic's actual amplitude once the
+            analyser connects (micLevelIsLive) — not a decorative loop —
+            so someone can see at a glance that the mic is really hearing
+            them. The brief moment before it connects falls back to the
+            old fixed animation rather than showing dead, flat bars. */}
+        <div className={`waveform${isListening ? (micLevelIsLive ? ' waveform--live' : ' waveform--active') : ''}`} aria-hidden="true">
+          {micLevels.map((level, i) =>
+            micLevelIsLive ? (
+              <span key={i} className="waveform__bar" style={{ height: `${10 + level * 22}px` }} />
+            ) : (
+              <span key={i} className="waveform__bar" style={{ animationDelay: `${i * 0.09}s` }} />
+            ),
+          )}
         </div>
 
         <p className="record-hint">

@@ -717,6 +717,13 @@ a {
   opacity: 1;
 }
 
+/* Real mic amplitude drives height via inline style each frame; a short
+   transition smooths between samples without lagging behind the voice. */
+.waveform--live .waveform__bar {
+  opacity: 1;
+  transition: height 60ms linear;
+}
+
 @keyframes wave {
   0%,
   100% {

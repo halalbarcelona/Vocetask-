@@ -84,10 +84,40 @@ export default function Record() {
   // Guards against a recogniser that ends the instant it starts — Safari does
   // this when it has nothing to listen to, and an unthrottled restart spins.
   const emptyRestartsRef = useRef(0)
+  // Real mic amplitude (see useMicLevel) tells apart two very different
+  // silent-failure modes: nothing is reaching the mic at all (permission,
+  // hardware, focus), versus audio is arriving fine but the recognition
+  // engine still isn't producing a single transcript (network/backend
+  // issue on the recognizer's side). Each needs different advice, and
+  // conflating them into one generic message is exactly what made this
+  // look like "the mic doesn't work" rather than a specific, sayable thing.
+  const heardAudioRef = useRef(false)
+  // A single loud sample is not proof of speech — mic hardware (real or
+  // simulated) can pop a one-frame transient right at stream start even in
+  // true silence. Real speech sustains across many consecutive samples;
+  // requiring a short run of them before believing it filters that out.
+  const sustainedAboveRef = useRef(0)
 
   const { lang, setLang } = useVoiceLang()
   const supportsSpeech = Boolean(SpeechRecognitionAPI)
   const { levels: micLevels, isLive: micLevelIsLive } = useMicLevel(isListening)
+
+  useEffect(() => {
+    if (!isListening) {
+      sustainedAboveRef.current = 0
+      return
+    }
+    // A single sample above threshold isn't proof of speech — even real mic
+    // hardware can pop a one-frame transient right when the stream opens.
+    // Only count it once several consecutive samples in a row clear the
+    // bar, which a genuine spoken word does easily but a startup click does
+    // not.
+    const aboveThreshold = micLevels.some((level) => level > 0.35)
+    sustainedAboveRef.current = aboveThreshold ? sustainedAboveRef.current + 1 : 0
+    if (sustainedAboveRef.current >= 3) {
+      heardAudioRef.current = true
+    }
+  }, [micLevels, isListening])
 
   useEffect(() => {
     if (!supportsSpeech) return undefined
@@ -151,11 +181,21 @@ export default function Record() {
       }
 
       // Never heard anything at all: the engine is refusing to run rather than
-      // waiting on speech. Say so instead of spinning.
-      if (!heardSomething && emptyRestartsRef.current > 8) {
+      // waiting on speech. If the mic itself already picked up real audio
+      // (heardAudioRef), give up fast — the hardware is fine, so more
+      // restarts won't help, and a long silent loop reads as "broken" long
+      // before it reads as "still trying." Give a little more patience
+      // when nothing has reached the mic yet, since that can just be the
+      // permission prompt or the user hasn't started talking.
+      const giveUpAfter = heardAudioRef.current ? 2 : 5
+      if (!heardSomething && emptyRestartsRef.current > giveUpAfter) {
         wantsToListenRef.current = false
         setIsListening(false)
-        setMicError('The mic isn’t picking anything up. Check your browser’s mic permission, or type the task below.')
+        setMicError(
+          heardAudioRef.current
+            ? 'We can hear you, but couldn’t make out any words. Try again, or type the task below.'
+            : 'The mic isn’t picking anything up. Check your browser’s mic permission, or type the task below.',
+        )
         return
       }
 
@@ -195,6 +235,7 @@ export default function Record() {
       committedRef.current = ''
       sessionFinalRef.current = ''
       emptyRestartsRef.current = 0
+      heardAudioRef.current = false
       wantsToListenRef.current = true
       try {
         recognition.start()
@@ -228,6 +269,7 @@ export default function Record() {
     committedRef.current = ''
     sessionFinalRef.current = ''
     emptyRestartsRef.current = 0
+    heardAudioRef.current = false
     wantsToListenRef.current = true
     try {
       recognition.start()

@@ -17,11 +17,14 @@ export default function Privacy() {
       <main className="screen__content">
         <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <p className="field__label">Your tasks stay on this device</p>
+            <p className="field__label">Your tasks stay on this device, by default</p>
             <p className="record-hint">
               Aura Task stores your tasks, categories, labels, and settings only in this browser's
               local storage. They're never uploaded or backed up anywhere — deleting your account or
-              clearing your browser data removes them for good.
+              clearing your browser data removes them for good — unless you turn on Sync (a Premium
+              feature, off by default). Turning on Sync sends your tasks to our backend so they can
+              follow you to another device; turning it off, or never enabling it, means your tasks
+              never leave this device.
             </p>
           </div>
 
@@ -29,9 +32,9 @@ export default function Privacy() {
             <p className="field__label">Your account</p>
             <p className="record-hint">
               Your name and email are also stored locally, on this device only. If you upgrade to
-              Premium, your email is sent to our backend so it can confirm your purchase — that's the
-              only account data that ever leaves this device, and it's stored separately from your
-              tasks, which our backend never sees.
+              Premium, your email is sent to our backend so it can confirm your purchase. That's the
+              only account data that ever leaves this device, and — unless you've turned on Sync above
+              — it's stored separately from your tasks, which our backend never sees.
             </p>
           </div>
 

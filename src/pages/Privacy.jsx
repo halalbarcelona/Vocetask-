@@ -39,6 +39,17 @@ export default function Privacy() {
           </div>
 
           <div>
+            <p className="field__label">Push notifications</p>
+            <p className="record-hint">
+              The in-app reminder toggle needs nothing extra — it's just a timer while Aura Task is
+              open. Turning on real push notifications (which arrive even when the app is closed)
+              requires Sync, and sends your browser's push address and a per-device encryption key to
+              our backend so a server can deliver to it — no task content is included in that message,
+              only a title and the text of the reminder itself.
+            </p>
+          </div>
+
+          <div>
             <p className="field__label">Voice input</p>
             <p className="record-hint">
               When you record a task by voice, audio is processed by your browser's built-in speech

@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react'
 import { useNotifications } from './useNotifications'
+import { usePushNotifications } from './usePushNotifications'
 import { useTasksContext } from './TasksContext'
 
 const NotificationsContext = createContext(null)
@@ -12,8 +13,9 @@ const NotificationsContext = createContext(null)
 // leaves Settings open. Reminders never actually fired.
 export function NotificationsProvider({ children }) {
   const { tasks } = useTasksContext()
-  const value = useNotifications(tasks)
-  return <NotificationsContext.Provider value={value}>{children}</NotificationsContext.Provider>
+  const inTab = useNotifications(tasks)
+  const push = usePushNotifications()
+  return <NotificationsContext.Provider value={{ inTab, push }}>{children}</NotificationsContext.Provider>
 }
 
 export function useNotificationsContext() {

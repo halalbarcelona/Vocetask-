@@ -9,6 +9,12 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       injectRegister: false,
+      // generateSW can't add a push/notificationclick handler, and real Web
+      // Push (see src/sw.js) needs exactly that — a hand-written worker,
+      // built from src/sw.js instead of auto-generated.
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       includeAssets: ['icons/apple-touch-icon.png', 'icons/favicon-48.png'],
       manifest: {
         name: 'Aura Task',
@@ -43,7 +49,7 @@ export default defineConfig({
           },
         },
       },
-      workbox: {
+      injectManifest: {
         globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
       },
     }),

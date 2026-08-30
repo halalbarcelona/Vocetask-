@@ -156,19 +156,42 @@ export default function Settings() {
           <div className="card">
             <div className="settings-row">
               <span>
-                {t('pushNotifications')}
-                {notifications.enabled && <span className="settings-row__note">{t('whileAppOpen')}</span>}
+                {t('inTabReminders')}
+                {notifications.inTab.enabled && <span className="settings-row__note">{t('whileAppOpen')}</span>}
               </span>
               <Toggle
-                checked={notifications.enabled}
-                onChange={notifications.setEnabled}
-                label={t('pushNotifications')}
+                checked={notifications.inTab.enabled}
+                onChange={notifications.inTab.setEnabled}
+                label={t('inTabReminders')}
               />
             </div>
-            {notifications.permissionDenied && (
+            {notifications.inTab.permissionDenied && (
               <p className="record-hint" style={{ padding: '0 var(--s1) var(--s3)' }}>
                 {t('notificationsBlocked')}
               </p>
+            )}
+            {notifications.push.supported && (
+              <>
+                <div className="settings-row">
+                  <span>
+                    {t('pushNotifications')}
+                    {notifications.push.enabled && <span className="settings-row__note">{t('pushNotificationsNote')}</span>}
+                  </span>
+                  <Toggle
+                    checked={notifications.push.enabled}
+                    onChange={async (value) => {
+                      const result = await notifications.push.setEnabled(value)
+                      if (!result.ok && result.message) flashStatus(result.message)
+                    }}
+                    label={t('pushNotifications')}
+                  />
+                </div>
+                {notifications.push.permissionDenied && (
+                  <p className="record-hint" style={{ padding: '0 var(--s1) var(--s3)' }}>
+                    {t('notificationsBlocked')}
+                  </p>
+                )}
+              </>
             )}
             <div className="settings-row">
               <span>{t('appearance')}</span>

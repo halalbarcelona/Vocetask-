@@ -8,6 +8,7 @@ import { LabelsProvider } from './hooks/LabelsContext'
 import { FiltersProvider } from './hooks/FiltersContext'
 import { AccentProvider } from './hooks/AccentContext'
 import { SyncProvider } from './hooks/SyncContext'
+import { NotificationsProvider } from './hooks/NotificationsContext'
 import { UILangProvider } from './hooks/UILangContext'
 import { CommandPaletteProvider } from './hooks/CommandPaletteContext'
 import { PreferencesProvider } from './hooks/PreferencesContext'
@@ -69,6 +70,7 @@ export default function App() {
           <PremiumBackendSync />
           <SyncProvider>
             <TasksProvider>
+              <NotificationsProvider>
               <CategoriesProvider>
                 <LabelsProvider>
                   <FiltersProvider>
@@ -112,6 +114,7 @@ export default function App() {
                   </FiltersProvider>
                 </LabelsProvider>
               </CategoriesProvider>
+              </NotificationsProvider>
             </TasksProvider>
           </SyncProvider>
         </PremiumProvider>

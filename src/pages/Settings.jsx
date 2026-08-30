@@ -5,7 +5,7 @@ import { ChevronIcon, LockIcon, MoonIcon, SunIcon } from '../components/icons'
 import { usePremiumContext } from '../hooks/PremiumContext'
 import { useAccountContext } from '../hooks/AccountContext'
 import { useTasksContext } from '../hooks/TasksContext'
-import { useNotifications } from '../hooks/useNotifications'
+import { useNotificationsContext } from '../hooks/NotificationsContext'
 import { useTheme } from '../hooks/useTheme'
 import { useAccentContext } from '../hooks/AccentContext'
 import { useVoiceLang, VOICE_LANGS } from '../hooks/useVoiceLang'
@@ -51,7 +51,7 @@ export default function Settings() {
     usePremiumContext()
   const { account } = useAccountContext()
   const { tasks, importTasks } = useTasksContext()
-  const notifications = useNotifications(tasks)
+  const notifications = useNotificationsContext()
   const { theme, setTheme } = useTheme()
   const { workStartMinutes, workEndMinutes, weekStartsOn, setWorkingHours, setWeekStartsOn } = usePreferencesContext()
   const { accent, setAccent, presets } = useAccentContext()

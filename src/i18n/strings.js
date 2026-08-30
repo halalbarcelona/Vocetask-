@@ -56,7 +56,7 @@ export const STRINGS = {
     seePremium: 'See Premium',
 
     settingsTitle: 'Settings',
-    trustBadge: 'Your tasks stay on this device — never uploaded.',
+    trustBadge: 'Your tasks stay on this device, unless you turn on Sync.',
     premiumLifetime: 'Premium — lifetime',
     premiumTrialDaysLeft: (days) => `Premium trial — ${days} day${days === 1 ? '' : 's'} left`,
     premiumDaysFree: (days) => `${days} days of Premium, free`,
@@ -105,7 +105,7 @@ export const STRINGS = {
     yourName: 'Your name',
     email: 'Email',
     createAccount: 'Create account',
-    stayLocalHint: 'Everything stays on this device — no data leaves your browser except when you upgrade.',
+    stayLocalHint: 'Everything stays on this device — no data leaves your browser except when you upgrade or turn on Sync.',
 
     nextUp: 'Next up',
     startFocus: 'Start Focus',
@@ -157,7 +157,7 @@ export const STRINGS = {
     seePremium: 'प्रीमियम देखें',
 
     settingsTitle: 'सेटिंग्स',
-    trustBadge: 'आपके टास्क इसी डिवाइस पर रहते हैं — कभी अपलोड नहीं होते।',
+    trustBadge: 'आपके टास्क इसी डिवाइस पर रहते हैं, जब तक आप Sync चालू न करें।',
     premiumLifetime: 'प्रीमियम — लाइफटाइम',
     premiumTrialDaysLeft: (days) => `प्रीमियम ट्रायल — ${days} दिन बचे हैं`,
     premiumDaysFree: (days) => `${days} दिन का प्रीमियम, मुफ़्त`,
@@ -206,7 +206,7 @@ export const STRINGS = {
     yourName: 'आपका नाम',
     email: 'ईमेल',
     createAccount: 'अकाउंट बनाएं',
-    stayLocalHint: 'सब कुछ इसी डिवाइस पर रहता है — अपग्रेड करने के अलावा कोई डेटा आपके ब्राउज़र से बाहर नहीं जाता।',
+    stayLocalHint: 'सब कुछ इसी डिवाइस पर रहता है — अपग्रेड करने या Sync चालू करने के अलावा कोई डेटा आपके ब्राउज़र से बाहर नहीं जाता।',
 
     nextUp: 'अगला काम',
     startFocus: 'फोकस शुरू करें',

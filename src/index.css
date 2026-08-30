@@ -2003,6 +2003,24 @@ a {
   border-radius: var(--radius-full);
 }
 
+.task-card__reschedule-toggle {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+}
+
+.task-card__reschedule-toggle--active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
 /* Theme picker (Settings) */
 .theme-row {
   display: flex;

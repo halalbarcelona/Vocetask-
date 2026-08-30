@@ -2,7 +2,7 @@ import { useState } from 'react'
 import CategoryChip from './CategoryChip'
 import LabelChip from './LabelChip'
 import RescheduleMenu from './RescheduleMenu'
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon, LockIcon, PencilIcon, RepeatIcon, TrashIcon } from './icons'
+import { CalendarIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, LockIcon, PencilIcon, RepeatIcon, TrashIcon } from './icons'
 import { formatTimeLabel, todayISO } from '../utils/dateUtils'
 import { useLabelsContext } from '../hooks/LabelsContext'
 import { useCategoriesContext } from '../hooks/CategoriesContext'
@@ -26,6 +26,7 @@ export default function TaskItem({
   onToggleSelect,
 }) {
   const [expanded, setExpanded] = useState(false)
+  const [showReschedule, setShowReschedule] = useState(false)
   const { colorFor } = useLabelsContext()
   const { colorForCategory } = useCategoriesContext()
   const { tasks } = useTasksContext()
@@ -134,6 +135,18 @@ export default function TaskItem({
           </div>
         )}
 
+        {!selectMode && isPremium && onReschedule && !isDone && (
+          <button
+            type="button"
+            className={`task-card__reschedule-toggle${showReschedule ? ' task-card__reschedule-toggle--active' : ''}`}
+            onClick={() => setShowReschedule((v) => !v)}
+            aria-label="Reschedule this task"
+            aria-expanded={showReschedule}
+          >
+            <CalendarIcon />
+          </button>
+        )}
+
         {!selectMode && onEdit && (
           <button
             type="button"
@@ -157,8 +170,14 @@ export default function TaskItem({
         )}
       </div>
 
-      {!selectMode && isPremium && onReschedule && !isDone && (
-        <RescheduleMenu task={task} onReschedule={(date, time) => onReschedule(task.id, date, time)} />
+      {!selectMode && isPremium && onReschedule && !isDone && showReschedule && (
+        <RescheduleMenu
+          task={task}
+          onReschedule={(date, time) => {
+            onReschedule(task.id, date, time)
+            setShowReschedule(false)
+          }}
+        />
       )}
 
       {expanded && hasExpandable && (

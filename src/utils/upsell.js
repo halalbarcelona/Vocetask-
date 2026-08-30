@@ -1,4 +1,5 @@
 import { todayISO } from './dateUtils'
+import { isOverdue } from './recurrence'
 
 const STOPWORDS = new Set(['the', 'a', 'an', 'my', 'to', 'for', 'and', 'of'])
 
@@ -65,7 +66,8 @@ export function pickUpsellReason(tasks) {
     }
   }
 
-  const overdueCount = tasks.filter((t) => t.date && t.date < todayISO() && !t.done).length
+  const today = todayISO()
+  const overdueCount = tasks.filter((t) => isOverdue(t, today)).length
   if (overdueCount >= 3) {
     return {
       feature: 'Snooze & reminders',

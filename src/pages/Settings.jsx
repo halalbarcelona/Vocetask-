@@ -165,6 +165,11 @@ export default function Settings() {
                 label={t('pushNotifications')}
               />
             </div>
+            {notifications.permissionDenied && (
+              <p className="record-hint" style={{ padding: '0 var(--s1) var(--s3)' }}>
+                {t('notificationsBlocked')}
+              </p>
+            )}
             <div className="settings-row">
               <span>{t('appearance')}</span>
               <div className="theme-row">

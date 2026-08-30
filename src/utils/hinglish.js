@@ -67,7 +67,9 @@ export const STANDALONE_TIMES = {
 
 export const PRIORITY_WORDS = {
   urgent: 'high', zaroori: 'high', zaruri: 'high', जरूरी: 'high', ज़रूरी: 'high',
-  important: 'high', asap: 'high',
+  important: 'high', asap: 'high', high: 'high', 'high priority': 'high',
+  medium: 'medium', 'medium priority': 'medium', 'normal priority': 'medium',
+  low: 'low', 'low priority': 'low', 'not urgent': 'low',
 }
 
 // Words that strongly imply a work context. Everything else stays Personal.

@@ -266,9 +266,9 @@ function extractRecurrence(text) {
 // defined on [A-Za-z0-9_] and so never matches beside Devanagari, which is why
 // "15 तारीख को बिजली का बिल" used to keep its stray को.
 const FILLER_WORDS = [
-  'karna hai', 'karni hai', 'karna', 'karni', 'hai', 'ko', 'par', 'pe', 'me', 'mein', 'mujhe',
+  'karna hai', 'karni hai', 'karna', 'karni', 'jaana hai', 'jaani hai', 'hai', 'ko', 'par', 'pe', 'me', 'mein', 'mujhe',
   'remind', 'reminder', 'set', 'add',
-  'करना है', 'करनी है', 'करना', 'करनी', 'है', 'को', 'पर', 'पे', 'में', 'मुझे',
+  'करना है', 'करनी है', 'करना', 'करनी', 'जाना है', 'जानी है', 'है', 'को', 'पर', 'पे', 'में', 'मुझे',
 ]
 const FILLER_RE = new RegExp(`(?:^|[\\s,.])(?:${alternation(FILLER_WORDS)})(?=$|[\\s,.!?])`, 'giu')
 

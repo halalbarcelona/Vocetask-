@@ -12,6 +12,7 @@ import { UILangProvider } from './hooks/UILangContext'
 import { CommandPaletteProvider } from './hooks/CommandPaletteContext'
 import { PreferencesProvider } from './hooks/PreferencesContext'
 import CommandPalette from './components/CommandPalette'
+import UpdatePrompt from './components/UpdatePrompt'
 import Home from './pages/Home'
 import Record from './pages/Record'
 import Confirm from './pages/Confirm'
@@ -58,6 +59,8 @@ function PremiumBackendSync() {
 
 export default function App() {
   return (
+    <>
+    <UpdatePrompt />
     <UILangProvider>
     <PreferencesProvider>
     <AccountProvider>
@@ -116,5 +119,6 @@ export default function App() {
     </AccountProvider>
     </PreferencesProvider>
     </UILangProvider>
+    </>
   )
 }

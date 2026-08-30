@@ -18,6 +18,12 @@ export const notificationsSupported = typeof window !== 'undefined' && 'Notifica
 // + push service), which this no-backend app doesn't have.
 export function useNotifications(tasks) {
   const [enabled, setEnabledState] = useState(() => localStorage.getItem(STORAGE_KEY) === 'true')
+  // Distinguishes "never asked" from "the user (or their browser) said no" —
+  // the toggle flipping back off with no explanation reads as broken rather
+  // than as the browser blocking it.
+  const [permissionDenied, setPermissionDenied] = useState(
+    () => notificationsSupported && Notification.permission === 'denied',
+  )
   const timersRef = useRef([])
 
   useEffect(() => {
@@ -28,10 +34,12 @@ export function useNotifications(tasks) {
     if (value && notificationsSupported) {
       const permission = await Notification.requestPermission()
       if (permission !== 'granted') {
+        setPermissionDenied(permission === 'denied')
         setEnabledState(false)
         return
       }
     }
+    setPermissionDenied(false)
     setEnabledState(value)
   }, [])
 
@@ -67,5 +75,5 @@ export function useNotifications(tasks) {
     return () => timersRef.current.forEach(clearTimeout)
   }, [enabled, tasks])
 
-  return { enabled, setEnabled, supported: notificationsSupported }
+  return { enabled, setEnabled, supported: notificationsSupported, permissionDenied }
 }

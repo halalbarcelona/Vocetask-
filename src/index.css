@@ -1516,6 +1516,25 @@ a {
   flex-shrink: 0;
 }
 
+.subtask-list-row__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  flex-shrink: 0;
+}
+
+.subtask-list-row__reorder {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  padding: var(--s1);
+  flex-shrink: 0;
+}
+
+.subtask-list-row__reorder:disabled {
+  opacity: 0.3;
+}
+
 .suggestion-chip {
   display: flex;
   align-items: center;

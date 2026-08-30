@@ -376,6 +376,31 @@ export function useTasks(userId) {
     )
   }, [])
 
+  // Renaming (or, when the target name already belongs to another label,
+  // merging into it) has to update every task carrying the old name, not
+  // just the label registry — otherwise a task's own labels array keeps
+  // pointing at a name nothing displays as anymore.
+  const renameLabelEverywhere = useCallback((oldName, newName) => {
+    setTasks((prev) =>
+      prev.map((t) => {
+        const labels = t.labels ?? []
+        if (!labels.includes(oldName)) return t
+        const replaced = labels.map((l) => (l === oldName ? newName : l))
+        return { ...t, labels: [...new Set(replaced)] }
+      }),
+    )
+  }, [])
+
+  const removeLabelEverywhere = useCallback((name) => {
+    setTasks((prev) =>
+      prev.map((t) => {
+        const labels = t.labels ?? []
+        if (!labels.includes(name)) return t
+        return { ...t, labels: labels.filter((l) => l !== name) }
+      }),
+    )
+  }, [])
+
   const clearDraft = useCallback(() => setDraftTask(null), [])
 
   const clearAllTasks = useCallback(() => setTasks([]), [])
@@ -423,6 +448,8 @@ export function useTasks(userId) {
     addSubtask,
     toggleSubtask,
     removeSubtask,
+    renameLabelEverywhere,
+    removeLabelEverywhere,
     draftTask,
     setDraftTask,
     clearDraft,

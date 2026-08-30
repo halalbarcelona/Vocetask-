@@ -17,6 +17,7 @@ import {
   SearchIcon,
   SettingsIcon,
   SparkIcon,
+  TagIcon,
   TimerIcon,
 } from './icons'
 import { formatDateLabel, formatTimeLabel, todayISO } from '../utils/dateUtils'
@@ -45,6 +46,7 @@ function useCommands() {
       { id: 'review', label: 'Weekly review', group: 'Go to', Icon: ChartIcon, premium: true, run: () => navigate('/review') },
       { id: 'templates', label: 'Task templates', group: 'Go to', Icon: LayersIcon, premium: true, run: () => navigate('/templates') },
       { id: 'filters', label: 'Filters', group: 'Go to', Icon: FilterIcon, premium: true, run: () => navigate('/filters') },
+      { id: 'labels', label: 'Manage labels', group: 'Go to', Icon: TagIcon, premium: true, run: () => navigate('/labels') },
       { id: 'sync', label: 'Sync across devices', group: 'Go to', Icon: RepeatIcon, premium: true, run: () => navigate('/sync') },
       { id: 'settings', label: 'Settings', group: 'Go to', Icon: SettingsIcon, run: () => navigate('/settings') },
     ],

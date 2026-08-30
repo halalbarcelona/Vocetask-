@@ -33,6 +33,7 @@ import Filters from './pages/Filters'
 import ShareTarget from './pages/ShareTarget'
 import Upcoming from './pages/Upcoming'
 import Timeline from './pages/Timeline'
+import Labels from './pages/Labels'
 import Focus from './pages/Focus'
 import Sync from './pages/Sync'
 
@@ -99,6 +100,7 @@ export default function App() {
                         <Route path="/share-target" element={<ShareTarget />} />
                         <Route path="/upcoming" element={<Upcoming />} />
                         <Route path="/timeline" element={<Timeline />} />
+                        <Route path="/labels" element={<Labels />} />
                         <Route path="/focus" element={<Focus />} />
                         <Route path="/sync" element={<Sync />} />
                         </Route>

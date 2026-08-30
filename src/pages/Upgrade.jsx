@@ -20,6 +20,7 @@ const FEATURES = [
   { label: 'Custom categories', free: '—', premium: 'Unlimited' },
   { label: 'Sections within a list', free: 'Included', premium: 'Included' },
   { label: 'Labels / tags', free: '—', premium: 'Unlimited' },
+  { label: 'Rename or delete labels everywhere at once', free: '—', premium: 'Included' },
   { label: 'Saved custom filters', free: '—', premium: 'Included' },
   { label: 'Duration estimates', free: '—', premium: 'Included' },
   { label: 'Upcoming — the 7-day view', free: '—', premium: 'Included' },

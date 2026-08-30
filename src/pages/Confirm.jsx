@@ -7,7 +7,17 @@ import { useLabelsContext } from '../hooks/LabelsContext'
 import { useTemplates } from '../hooks/useTemplates'
 import CategoryChip from '../components/CategoryChip'
 import LabelChip from '../components/LabelChip'
-import { BackIcon, LockIcon, MicIcon, PlusIcon, SparkIcon, StopIcon, TrashIcon } from '../components/icons'
+import {
+  BackIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  LockIcon,
+  MicIcon,
+  PlusIcon,
+  SparkIcon,
+  StopIcon,
+  TrashIcon,
+} from '../components/icons'
 import { DURATION_OPTIONS } from '../utils/duration'
 import { useVoiceRecorder } from '../hooks/useVoiceRecorder'
 import { suggestSlot } from '../utils/schedule'
@@ -162,6 +172,28 @@ export default function Confirm() {
 
   const handleRemoveSubtask = (id) => {
     updateDraft({ subtasks: subtasks.filter((s) => s.id !== id) })
+  }
+
+  const handleReorderSubtask = (id, direction) => {
+    const index = subtasks.findIndex((s) => s.id === id)
+    const swapWith = direction === 'up' ? index - 1 : index + 1
+    if (index === -1 || swapWith < 0 || swapWith >= subtasks.length) return
+    const next = [...subtasks]
+    ;[next[index], next[swapWith]] = [next[swapWith], next[index]]
+    updateDraft({ subtasks: next })
+  }
+
+  // A copy is a brand-new task, not a shared reference: addTask always
+  // mints its own id, and completion state resets since a duplicate hasn't
+  // been done yet — but subtask ids need regenerating explicitly, or
+  // toggling one copy's checklist item would silently affect the other's.
+  const handleDuplicate = () => {
+    addTask({
+      ...draftTask,
+      done: false,
+      subtasks: subtasks.map((s) => ({ ...s, id: subtaskId(), done: false })),
+    })
+    navigate('/', { state: { toast: `Duplicated "${draftTask.title || 'task'}"` } })
   }
 
   const handleSelectRecurrence = (value) => {
@@ -564,17 +596,37 @@ export default function Confirm() {
             </div>
             {subtasks.length > 0 && (
               <div className="subtask-list">
-                {subtasks.map((s) => (
+                {subtasks.map((s, index) => (
                   <div key={s.id} className="subtask-list-row">
                     <span>{s.title}</span>
-                    <button
-                      type="button"
-                      className="subtask-list-row__remove"
-                      onClick={() => handleRemoveSubtask(s.id)}
-                      aria-label={`Remove subtask ${s.title}`}
-                    >
-                      <TrashIcon />
-                    </button>
+                    <div className="subtask-list-row__actions">
+                      <button
+                        type="button"
+                        className="subtask-list-row__reorder"
+                        onClick={() => handleReorderSubtask(s.id, 'up')}
+                        disabled={index === 0}
+                        aria-label={`Move subtask ${s.title} up`}
+                      >
+                        <ChevronUpIcon width={14} height={14} />
+                      </button>
+                      <button
+                        type="button"
+                        className="subtask-list-row__reorder"
+                        onClick={() => handleReorderSubtask(s.id, 'down')}
+                        disabled={index === subtasks.length - 1}
+                        aria-label={`Move subtask ${s.title} down`}
+                      >
+                        <ChevronDownIcon width={14} height={14} />
+                      </button>
+                      <button
+                        type="button"
+                        className="subtask-list-row__remove"
+                        onClick={() => handleRemoveSubtask(s.id)}
+                        aria-label={`Remove subtask ${s.title}`}
+                      >
+                        <TrashIcon />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -589,6 +641,11 @@ export default function Confirm() {
           <button type="button" className="button button--ghost button--wide" onClick={handleSaveTemplate}>
             {templateSaved ? 'Saved as template' : 'Save as template'}
           </button>
+          {isEditing && (
+            <button type="button" className="button button--ghost button--wide" onClick={handleDuplicate}>
+              Duplicate
+            </button>
+          )}
           <button type="button" className="button button--ghost button--wide" onClick={handleDiscard}>
             {isEditing ? 'Cancel' : 'Discard'}
           </button>

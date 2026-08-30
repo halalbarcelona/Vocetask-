@@ -41,10 +41,24 @@ export function useLabels() {
     setLabels((prev) => prev.filter((l) => l.name !== name))
   }, [])
 
+  // If the new name already belongs to a different label, this is a merge —
+  // the old entry disappears and the existing target's color wins, rather
+  // than ending up with two registry entries for what's now one name.
+  const renameLabel = useCallback((oldName, newName) => {
+    const trimmed = newName.trim()
+    if (!trimmed || trimmed.toLowerCase() === oldName.toLowerCase()) return oldName
+    setLabels((prev) => {
+      const collision = prev.find((l) => l.name.toLowerCase() === trimmed.toLowerCase() && l.name !== oldName)
+      if (collision) return prev.filter((l) => l.name !== oldName)
+      return prev.map((l) => (l.name === oldName ? { ...l, name: trimmed } : l))
+    })
+    return trimmed
+  }, [])
+
   const colorFor = useCallback(
     (name) => labels.find((l) => l.name.toLowerCase() === name.toLowerCase())?.color ?? '#8a8a94',
     [labels],
   )
 
-  return { labels, addLabel, removeLabel, colorFor }
+  return { labels, addLabel, removeLabel, renameLabel, colorFor }
 }

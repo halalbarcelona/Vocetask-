@@ -6,6 +6,7 @@ import { usePremiumContext } from '../hooks/PremiumContext'
 import { useAccountContext } from '../hooks/AccountContext'
 import { useTasksContext } from '../hooks/TasksContext'
 import { useNotificationsContext } from '../hooks/NotificationsContext'
+import { useSyncContext } from '../hooks/SyncContext'
 import { useTheme } from '../hooks/useTheme'
 import { useAccentContext } from '../hooks/AccentContext'
 import { useVoiceLang, VOICE_LANGS } from '../hooks/useVoiceLang'
@@ -50,6 +51,7 @@ export default function Settings() {
   const { isPremium, isPaid, trialActive, trialDaysLeft, trialAvailable, trialDays, startTrial } =
     usePremiumContext()
   const { account } = useAccountContext()
+  const { isSignedIn: syncSignedIn } = useSyncContext()
   const { tasks, importTasks } = useTasksContext()
   const notifications = useNotificationsContext()
   const { theme, setTheme } = useTheme()
@@ -170,7 +172,18 @@ export default function Settings() {
                 {t('notificationsBlocked')}
               </p>
             )}
-            {notifications.push.supported && (
+            {notifications.push.supported && !syncSignedIn && (
+              <div className="settings-row">
+                <span>
+                  {t('pushNotifications')}
+                  <span className="settings-row__note">{t('pushRequiresSync')}</span>
+                </span>
+                <button type="button" className="button button--ghost button--small" onClick={() => navigate('/sync')}>
+                  {t('start')}
+                </button>
+              </div>
+            )}
+            {notifications.push.supported && syncSignedIn && (
               <>
                 <div className="settings-row">
                   <span>

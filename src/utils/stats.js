@@ -80,14 +80,24 @@ export function habitStreak(task) {
   if (dates.size === 0) return 0
 
   const cursor = new Date()
-  if (!dates.has(toISODate(cursor))) {
+  // A habit due only some days (weekly/monthly/custom) has to skip the days
+  // it was never due on rather than treating them as consecutive-day gaps —
+  // otherwise every non-daily habit reads as a streak of 0 or 1 forever.
+  if (isDueOn(task, toISODate(cursor)) && !dates.has(toISODate(cursor))) {
+    // Not done yet today — give the same grace a daily habit gets, so the
+    // streak doesn't vanish before there's been a chance to do today's.
     cursor.setDate(cursor.getDate() - 1)
-    if (!dates.has(toISODate(cursor))) return 0
   }
 
   let streak = 0
-  while (dates.has(toISODate(cursor))) {
-    streak += 1
+  // Bounded so a habit that's never actually due (e.g. custom with no days
+  // selected) can't walk backward forever looking for one.
+  for (let i = 0; i < 3660; i++) {
+    const iso = toISODate(cursor)
+    if (isDueOn(task, iso)) {
+      if (!dates.has(iso)) break
+      streak += 1
+    }
     cursor.setDate(cursor.getDate() - 1)
   }
   return streak

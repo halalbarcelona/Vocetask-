@@ -6,6 +6,12 @@ import LockedOverlay from '../components/LockedOverlay'
 import { BackIcon, LayersIcon, TrashIcon } from '../components/icons'
 import { todayISO } from '../utils/dateUtils'
 
+function subtaskId() {
+  return typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `subtask-${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
+
 export default function Templates() {
   const navigate = useNavigate()
   const { addTask } = useTasksContext()
@@ -13,8 +19,17 @@ export default function Templates() {
   const { isPremium } = usePremiumContext()
 
   const handleUse = (template) => {
-    addTask({ ...template, date: todayISO() })
-    navigate('/', { state: { toast: `Added "${template.name}" for today` } })
+    // A template's own id/name are metadata for this list, not task fields —
+    // spreading them straight onto the new task would leak them in. Subtasks
+    // need fresh ids and a clean done state too, or reusing a template whose
+    // subtasks were checked off last time starts the new task half-finished.
+    const { id, name, subtasks, ...taskFields } = template
+    addTask({
+      ...taskFields,
+      date: todayISO(),
+      subtasks: (subtasks ?? []).map((s) => ({ ...s, id: subtaskId(), done: false })),
+    })
+    navigate('/', { state: { toast: `Added "${name}" for today` } })
   }
 
   return (

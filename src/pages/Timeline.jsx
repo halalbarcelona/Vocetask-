@@ -35,8 +35,9 @@ export default function Timeline() {
 
   const days = useMemo(() => {
     const list = []
+    const start = new Date(`${today}T00:00:00`)
     for (let i = 0; i < DAYS_AHEAD; i++) {
-      const d = new Date()
+      const d = new Date(start)
       d.setDate(d.getDate() + i)
       const iso = toISODate(d)
       const dayTasks = tasks
@@ -46,7 +47,7 @@ export default function Timeline() {
       list.push({ iso, tasks: dayTasks })
     }
     return list
-  }, [tasks])
+  }, [tasks, today])
 
   const isEmpty = overdue.length === 0 && days.every((d) => d.tasks.length === 0)
 

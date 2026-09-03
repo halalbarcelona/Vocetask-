@@ -36,6 +36,7 @@ export function useTemplates() {
       priority: task.priority ?? 'none',
       subtasks: task.subtasks ?? [],
       notes: task.notes ?? '',
+      labels: task.labels ?? [],
     }
     setTemplates((prev) => [...prev, template])
     return template

@@ -28,7 +28,15 @@ export function matchesFilter(task, criteria, todayISO) {
 
   if (c.due === 'today' && !isDueOn(task, todayISO)) return false
   if (c.due === 'overdue' && !isOverdue(task, todayISO)) return false
-  if (c.due === 'upcoming' && !(task.date && task.date > todayISO)) return false
+  if (c.due === 'upcoming') {
+    // task.date is a recurring task's anchor/creation date, not "today" — a
+    // daily habit created last month still needs to count as upcoming
+    // whenever it isn't due today, or it can never match this filter at all.
+    const upcoming = isRecurring
+      ? Boolean(task.date) && task.date <= todayISO && !isDueOn(task, todayISO)
+      : Boolean(task.date) && task.date > todayISO
+    if (!upcoming) return false
+  }
 
   return true
 }

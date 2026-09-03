@@ -1,0 +1,50 @@
+{
+  "packageId": "com.halalbarcelona.auratask",
+  "host": "halalbarcelona.github.io",
+  "name": "Aura Task",
+  "launcherName": "Aura Task",
+  "display": "standalone",
+  "themeColor": "#4b3fd4",
+  "themeColorDark": "#16131d",
+  "navigationColor": "#4b3fd4",
+  "navigationColorDark": "#16131d",
+  "backgroundColor": "#fbfaf8",
+  "backgroundColorDark": "#16131d",
+  "enableNotifications": true,
+  "startUrl": "/Vocetask-/",
+  "webManifestUrl": "https://halalbarcelona.github.io/Vocetask-/manifest.webmanifest",
+  "iconUrl": "https://halalbarcelona.github.io/Vocetask-/icons/icon-512.png",
+  "maskableIconUrl": "https://halalbarcelona.github.io/Vocetask-/icons/icon-maskable-512.png",
+  "monochromeIconUrl": "",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "aura-task"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "New voice task",
+      "short_name": "Record",
+      "url": "/Vocetask-/record",
+      "icon": "https://halalbarcelona.github.io/Vocetask-/icons/icon-192.png"
+    }
+  ],
+  "generatorApp": "manual",
+  "fallbackType": "customtabs",
+  "features": {
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "orientation": "portrait",
+  "fullscreen": false,
+  "minSdkVersion": 21
+}

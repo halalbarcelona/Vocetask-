@@ -2,3 +2,11 @@ node_modules
 dist
 .DS_Store
 *.local
+
+# Android signing key and Bubblewrap build output — never commit a signing
+# key. See android/README.md.
+android/android.keystore
+android/*.keystore
+android/build
+android/app/build
+android/.gradle

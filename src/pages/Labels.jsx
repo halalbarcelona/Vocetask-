@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLabelsContext } from '../hooks/LabelsContext'
 import { useTasksContext } from '../hooks/TasksContext'
 import { usePremiumContext } from '../hooks/PremiumContext'
+import { useUILangContext } from '../hooks/UILangContext'
 import LockedOverlay from '../components/LockedOverlay'
 import LabelChip from '../components/LabelChip'
 import { BackIcon, PencilIcon, TagIcon, TrashIcon } from '../components/icons'
@@ -16,6 +17,7 @@ export default function Labels() {
   const { labels, removeLabel, renameLabel } = useLabelsContext()
   const { tasks, renameLabelEverywhere, removeLabelEverywhere } = useTasksContext()
   const { isPremium } = usePremiumContext()
+  const { t } = useUILangContext()
   const [editingName, setEditingName] = useState(null)
   const [draftName, setDraftName] = useState('')
 
@@ -39,7 +41,7 @@ export default function Labels() {
 
   const handleDelete = (name) => {
     const count = usageCount(name)
-    if (count > 0 && !window.confirm(`Remove "${name}" from ${count} task${count === 1 ? '' : 's'}?`)) return
+    if (count > 0 && !window.confirm(t('removeLabelConfirm', name, count))) return
     removeLabel(name)
     removeLabelEverywhere(name)
   }
@@ -50,23 +52,23 @@ export default function Labels() {
         <button type="button" className="icon-button" onClick={() => navigate(-1)} aria-label="Go back">
           <BackIcon />
         </button>
-        <h1 className="page-header__title">Manage labels</h1>
+        <h1 className="page-header__title">{t('manageLabels')}</h1>
         <span className="icon-button icon-button--spacer" />
       </header>
 
       <main className="screen__content">
-        <p className="confirm-hint">Rename a label to fix a typo everywhere it's used, or delete one you don't need.</p>
+        <p className="confirm-hint">{t('labelsHint')}</p>
 
         <LockedOverlay
           locked={!isPremium}
-          title={labels.length > 0 ? `You have ${labels.length} label${labels.length === 1 ? '' : 's'}` : 'Labels are Premium'}
-          subtitle="Unlock Premium to create and manage your own labels."
+          title={labels.length > 0 ? t('youHaveLabels', labels.length) : t('labelsArePremium')}
+          subtitle={t('unlockLabelsSubtitle')}
         >
           {labels.length === 0 ? (
             <div className="empty-state">
               <TagIcon width={28} height={28} className="empty-state__icon" />
-              <p>No labels yet.</p>
-              <p className="empty-state__hint">Add one to a task from the Confirm screen — it'll show up here.</p>
+              <p>{t('noLabelsYet')}</p>
+              <p className="empty-state__hint">{t('addLabelHint')}</p>
             </div>
           ) : (
             <div className="task-list">
@@ -85,9 +87,7 @@ export default function Labels() {
                   ) : (
                     <div>
                       <LabelChip name={label.name} color={label.color} />
-                      <p className="template-card__meta">
-                        {usageCount(label.name)} task{usageCount(label.name) === 1 ? '' : 's'}
-                      </p>
+                      <p className="template-card__meta">{t('taskCountLabel', usageCount(label.name))}</p>
                     </div>
                   )}
                   <div className="template-card__actions">

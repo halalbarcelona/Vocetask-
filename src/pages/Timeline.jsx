@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTasksContext } from '../hooks/TasksContext'
 import { usePremiumContext } from '../hooks/PremiumContext'
+import { useUILangContext } from '../hooks/UILangContext'
 import LockedOverlay from '../components/LockedOverlay'
 import TaskItem from '../components/TaskItem'
 import { BackIcon } from '../components/icons'
@@ -19,6 +20,7 @@ export default function Timeline() {
   const navigate = useNavigate()
   const { tasks, toggleDone, toggleSubtask, setDraftTask, updateTask } = useTasksContext()
   const { isPremium } = usePremiumContext()
+  const { t } = useUILangContext()
   const today = todayISO()
 
   const handleEdit = (task) => {
@@ -57,21 +59,21 @@ export default function Timeline() {
         <button type="button" className="icon-button" onClick={() => navigate(-1)} aria-label="Go back">
           <BackIcon />
         </button>
-        <h1 className="page-header__title">Timeline</h1>
+        <h1 className="page-header__title">{t('timelineTitle')}</h1>
         <span className="icon-button icon-button--spacer" />
       </header>
 
       <main className="screen__content">
         <LockedOverlay
           locked={!isPremium}
-          title="See a month ahead in one scroll"
-          subtitle="Unlock Premium for the full timeline — overdue through the next 30 days."
+          title={t('timelineUnlockTitle')}
+          subtitle={t('timelineUnlockSubtitle')}
         >
-          {isEmpty && <p className="empty-state__hint">Nothing overdue or planned for the next 30 days.</p>}
+          {isEmpty && <p className="empty-state__hint">{t('nothingInTimeline')}</p>}
 
           {overdue.length > 0 && (
             <section>
-              <h2 className="section-title section-title--danger">Overdue</h2>
+              <h2 className="section-title section-title--danger">{t('overdueHeader')}</h2>
               <div className="task-list">
                 {overdue.map((task) => (
                   <TaskItem

@@ -347,7 +347,7 @@ export default function Settings() {
             />
             <PremiumRow
               isPremium={isPremium}
-              label="Manage labels"
+              label={t('manageLabels')}
               onClick={() => (isPremium ? navigate('/labels') : navigate('/upgrade'))}
             />
           </div>

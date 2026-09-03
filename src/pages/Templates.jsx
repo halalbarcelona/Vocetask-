@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTasksContext } from '../hooks/TasksContext'
 import { useTemplates } from '../hooks/useTemplates'
 import { usePremiumContext } from '../hooks/PremiumContext'
+import { useUILangContext } from '../hooks/UILangContext'
 import LockedOverlay from '../components/LockedOverlay'
 import { BackIcon, LayersIcon, TrashIcon } from '../components/icons'
 import { todayISO } from '../utils/dateUtils'
@@ -17,6 +18,7 @@ export default function Templates() {
   const { addTask } = useTasksContext()
   const { templates, removeTemplate } = useTemplates()
   const { isPremium } = usePremiumContext()
+  const { t } = useUILangContext()
 
   const handleUse = (template) => {
     // A template's own id/name are metadata for this list, not task fields —
@@ -29,7 +31,7 @@ export default function Templates() {
       date: todayISO(),
       subtasks: (subtasks ?? []).map((s) => ({ ...s, id: subtaskId(), done: false })),
     })
-    navigate('/', { state: { toast: `Added "${name}" for today` } })
+    navigate('/', { state: { toast: t('addedTemplateToday', name) } })
   }
 
   return (
@@ -38,28 +40,24 @@ export default function Templates() {
         <button type="button" className="icon-button" onClick={() => navigate(-1)} aria-label="Go back">
           <BackIcon />
         </button>
-        <h1 className="page-header__title">Task templates</h1>
+        <h1 className="page-header__title">{t('taskTemplates')}</h1>
         <span className="icon-button icon-button--spacer" />
       </header>
 
       <main className="screen__content">
-        <p className="confirm-hint">
-          Save any task as a template from the Confirm screen, then reuse it here with one tap.
-        </p>
+        <p className="confirm-hint">{t('taskTemplatesHint')}</p>
 
         <LockedOverlay
           locked={!isPremium}
-          title={templates.length > 0 ? `You saved ${templates.length} template${templates.length === 1 ? '' : 's'}` : 'Templates are Premium'}
-          subtitle="Unlock Premium to reuse them with one tap."
+          title={templates.length > 0 ? t('youSavedTemplates', templates.length) : t('templatesArePremium')}
+          subtitle={t('unlockTemplatesSubtitle')}
         >
 
         {templates.length === 0 ? (
           <div className="empty-state">
             <LayersIcon width={28} height={28} className="empty-state__icon" />
-            <p>No templates yet.</p>
-            <p className="empty-state__hint">
-              Fill in a task, then tap "Save as Template" before saving it.
-            </p>
+            <p>{t('noTemplatesYet')}</p>
+            <p className="empty-state__hint">{t('saveAsTemplateHint')}</p>
           </div>
         ) : (
           <div className="task-list">
@@ -75,7 +73,7 @@ export default function Templates() {
                 </div>
                 <div className="template-card__actions">
                   <button type="button" className="button button--primary button--compact" onClick={() => handleUse(template)}>
-                    Use
+                    {t('useTemplate')}
                   </button>
                   <button
                     type="button"

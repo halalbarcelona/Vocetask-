@@ -2,21 +2,11 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTasksContext } from '../hooks/TasksContext'
 import { usePremiumContext } from '../hooks/PremiumContext'
+import { useUILangContext } from '../hooks/UILangContext'
 import LockedOverlay from '../components/LockedOverlay'
 import { BackIcon, CheckIcon } from '../components/icons'
 import { formatDateLabel, todayISO, tomorrowISO } from '../utils/dateUtils'
 import { isDueOn } from '../utils/recurrence'
-
-// Three buckets, not the six-or-seven-status board a full custom-statuses
-// system would need — those don't exist yet (see the audit backlog), and a
-// board with more columns than a user has ever needed is worse than no
-// board. These three read straight off fields tasks already have (date,
-// done), so this needed no schema change to ship.
-const COLUMNS = [
-  { id: 'todo', title: 'To do' },
-  { id: 'scheduled', title: 'Scheduled' },
-  { id: 'done', title: 'Done' },
-]
 
 function isTaskDone(task, today) {
   return task.recurrence && task.recurrence !== 'none' ? (task.completedDates ?? []).includes(today) : task.done
@@ -32,8 +22,20 @@ export default function Board() {
   const navigate = useNavigate()
   const { tasks, updateTask, toggleDone, setDraftTask } = useTasksContext()
   const { isPremium } = usePremiumContext()
+  const { t } = useUILangContext()
   const [dragTaskId, setDragTaskId] = useState(null)
   const [dragOverColumn, setDragOverColumn] = useState(null)
+
+  // Three buckets, not the six-or-seven-status board a full custom-statuses
+  // system would need — those don't exist yet (see the audit backlog), and a
+  // board with more columns than a user has ever needed is worse than no
+  // board. These three read straight off fields tasks already have (date,
+  // done), so this needed no schema change to ship.
+  const COLUMNS = [
+    { id: 'todo', title: t('columnTodo') },
+    { id: 'scheduled', title: t('columnScheduled') },
+    { id: 'done', title: t('columnDone') },
+  ]
 
   const today = todayISO()
 
@@ -92,15 +94,15 @@ export default function Board() {
         <button type="button" className="icon-button" onClick={() => navigate(-1)} aria-label="Go back">
           <BackIcon />
         </button>
-        <h1 className="page-header__title">Board</h1>
+        <h1 className="page-header__title">{t('boardTitle')}</h1>
         <span className="icon-button icon-button--spacer" />
       </header>
 
       <main className="screen__content">
         <LockedOverlay
           locked={!isPremium}
-          title="See your work as a board"
-          subtitle="Unlock Premium to drag tasks between To do, Scheduled, and Done."
+          title={t('boardUnlockTitle')}
+          subtitle={t('boardUnlockSubtitle')}
         >
           <div className="board">
             {COLUMNS.map((column) => (
@@ -122,7 +124,7 @@ export default function Board() {
                 </p>
 
                 {grouped[column.id].length === 0 ? (
-                  <p className="board__empty">Nothing here.</p>
+                  <p className="board__empty">{t('boardEmptyColumn')}</p>
                 ) : (
                   grouped[column.id].map((task) => {
                     const isRecurring = task.recurrence && task.recurrence !== 'none'
@@ -134,9 +136,9 @@ export default function Board() {
                         onDragStart={() => setDragTaskId(task.id)}
                         onDragEnd={() => setDragTaskId(null)}
                         onClick={() => handleEdit(task)}
-                        title={isRecurring ? 'Recurring tasks move by completing them, not by dragging' : undefined}
+                        title={isRecurring ? t('recurringDragHint') : undefined}
                       >
-                        <p className="board__card-title">{task.title || 'Untitled task'}</p>
+                        <p className="board__card-title">{task.title || t('untitledTask')}</p>
                         {task.date && <p className="board__card-meta">{formatDateLabel(task.date)}</p>}
                         {column.id !== 'done' && (
                           <button

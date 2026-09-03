@@ -5,32 +5,13 @@ import { usePremiumContext } from '../hooks/PremiumContext'
 import { useCategoriesContext } from '../hooks/CategoriesContext'
 import { useLabelsContext } from '../hooks/LabelsContext'
 import { useFiltersContext } from '../hooks/FiltersContext'
+import { useUILangContext } from '../hooks/UILangContext'
 import LockedOverlay from '../components/LockedOverlay'
 import CategoryChip from '../components/CategoryChip'
 import LabelChip from '../components/LabelChip'
 import { BackIcon, FilterIcon, PlusIcon, TrashIcon } from '../components/icons'
 import { emptyCriteria, matchesFilter } from '../utils/filters'
 import { todayISO } from '../utils/dateUtils'
-
-const PRIORITY_OPTIONS = [
-  { value: 'high', label: 'High' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'low', label: 'Low' },
-  { value: 'none', label: 'None' },
-]
-
-const DUE_OPTIONS = [
-  { value: 'any', label: 'Any date' },
-  { value: 'today', label: 'Due today' },
-  { value: 'overdue', label: 'Overdue' },
-  { value: 'upcoming', label: 'Upcoming' },
-]
-
-const DONE_OPTIONS = [
-  { value: 'any', label: 'Any' },
-  { value: 'pending', label: 'Not done' },
-  { value: 'done', label: 'Done' },
-]
 
 function toggleIn(list, value) {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value]
@@ -40,8 +21,29 @@ function FilterBuilder({ initial, onCancel, onSave }) {
   const { categories, colorForCategory } = useCategoriesContext()
   const { labels } = useLabelsContext()
   const { tasks } = useTasksContext()
+  const { t } = useUILangContext()
   const [name, setName] = useState(initial?.name ?? '')
   const [criteria, setCriteria] = useState(initial?.criteria ?? emptyCriteria())
+
+  const PRIORITY_OPTIONS = [
+    { value: 'high', label: t('priorityHigh') },
+    { value: 'medium', label: t('priorityMedium') },
+    { value: 'low', label: t('priorityLow') },
+    { value: 'none', label: t('priorityNone') },
+  ]
+
+  const DUE_OPTIONS = [
+    { value: 'any', label: t('dueAnyDate') },
+    { value: 'today', label: t('dueToday') },
+    { value: 'overdue', label: t('dueOverdue') },
+    { value: 'upcoming', label: t('dueUpcoming') },
+  ]
+
+  const DONE_OPTIONS = [
+    { value: 'any', label: t('statusAny') },
+    { value: 'pending', label: t('statusPending') },
+    { value: 'done', label: t('statusDone') },
+  ]
 
   const today = todayISO()
   const previewCount = tasks.filter((t) => matchesFilter(t, criteria, today)).length
@@ -49,18 +51,18 @@ function FilterBuilder({ initial, onCancel, onSave }) {
   return (
     <div className="card confirm-card">
       <label className="field">
-        <span className="field__label">Name</span>
+        <span className="field__label">{t('filterNameLabel')}</span>
         <input
           type="text"
           className="field__input"
-          placeholder="e.g. Urgent at work"
+          placeholder={t('filterNamePlaceholder')}
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
       </label>
 
       <div className="field">
-        <span className="field__label">Lists</span>
+        <span className="field__label">{t('listsLabel')}</span>
         <div className="chip-row">
           {categories.map((category) => (
             <CategoryChip
@@ -76,7 +78,7 @@ function FilterBuilder({ initial, onCancel, onSave }) {
 
       {labels.length > 0 && (
         <div className="field">
-          <span className="field__label">Labels</span>
+          <span className="field__label">{t('labelsFieldLabel')}</span>
           <div className="chip-row">
             {labels.map((label) => (
               <LabelChip
@@ -92,7 +94,7 @@ function FilterBuilder({ initial, onCancel, onSave }) {
       )}
 
       <div className="field">
-        <span className="field__label">Priority</span>
+        <span className="field__label">{t('priorityLabel')}</span>
         <div className="chip-row">
           {PRIORITY_OPTIONS.map((option) => (
             <button
@@ -108,7 +110,7 @@ function FilterBuilder({ initial, onCancel, onSave }) {
       </div>
 
       <div className="field">
-        <span className="field__label">Due</span>
+        <span className="field__label">{t('dueLabel')}</span>
         <div className="chip-row">
           {DUE_OPTIONS.map((option) => (
             <button
@@ -124,7 +126,7 @@ function FilterBuilder({ initial, onCancel, onSave }) {
       </div>
 
       <div className="field">
-        <span className="field__label">Status</span>
+        <span className="field__label">{t('statusLabel')}</span>
         <div className="chip-row">
           {DONE_OPTIONS.map((option) => (
             <button
@@ -139,9 +141,7 @@ function FilterBuilder({ initial, onCancel, onSave }) {
         </div>
       </div>
 
-      <p className="record-hint">
-        {previewCount} task{previewCount === 1 ? '' : 's'} match right now
-      </p>
+      <p className="record-hint">{t('tasksMatchNow', previewCount)}</p>
 
       <div className="confirm-actions">
         <button
@@ -150,10 +150,10 @@ function FilterBuilder({ initial, onCancel, onSave }) {
           disabled={!name.trim()}
           onClick={() => onSave(name.trim(), criteria)}
         >
-          Save filter
+          {t('saveFilter')}
         </button>
         <button type="button" className="button button--ghost button--wide" onClick={onCancel}>
-          Cancel
+          {t('cancel')}
         </button>
       </div>
     </div>
@@ -163,6 +163,7 @@ function FilterBuilder({ initial, onCancel, onSave }) {
 export default function Filters() {
   const navigate = useNavigate()
   const { isPremium } = usePremiumContext()
+  const { t } = useUILangContext()
   const { filters, saveFilter, removeFilter } = useFiltersContext()
   const [editingId, setEditingId] = useState(null)
   const [isCreating, setIsCreating] = useState(false)
@@ -181,20 +182,17 @@ export default function Filters() {
         <button type="button" className="icon-button" onClick={() => navigate(-1)} aria-label="Go back">
           <BackIcon />
         </button>
-        <h1 className="page-header__title">Filters</h1>
+        <h1 className="page-header__title">{t('filters')}</h1>
         <span className="icon-button icon-button--spacer" />
       </header>
 
       <main className="screen__content">
-        <p className="confirm-hint">
-          Combine lists, labels, priority and due date into one saved view — reachable from Home with a
-          single tap.
-        </p>
+        <p className="confirm-hint">{t('filtersHint')}</p>
 
         <LockedOverlay
           locked={!isPremium}
-          title={filters.length > 0 ? `You saved ${filters.length} filter${filters.length === 1 ? '' : 's'}` : 'Filters are Premium'}
-          subtitle="Unlock Premium to build and reuse your own custom views."
+          title={filters.length > 0 ? t('youSavedFilters', filters.length) : t('filtersArePremium')}
+          subtitle={t('unlockFiltersSubtitle')}
         >
           {isCreating || editingFilter ? (
             <FilterBuilder
@@ -210,8 +208,8 @@ export default function Filters() {
               {filters.length === 0 ? (
                 <div className="empty-state">
                   <FilterIcon width={28} height={28} className="empty-state__icon" />
-                  <p>No filters yet.</p>
-                  <p className="empty-state__hint">Build one from your lists, labels, priority and due date.</p>
+                  <p>{t('noFiltersYet')}</p>
+                  <p className="empty-state__hint">{t('buildFilterHint')}</p>
                 </div>
               ) : (
                 <div className="task-list">
@@ -243,7 +241,7 @@ export default function Filters() {
                 className="button button--light button--wide"
                 onClick={() => setIsCreating(true)}
               >
-                <PlusIcon width={14} height={14} /> New filter
+                <PlusIcon width={14} height={14} /> {t('newFilter')}
               </button>
             </>
           )}

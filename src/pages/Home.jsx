@@ -147,6 +147,9 @@ export default function Home() {
     t.recurrence && t.recurrence !== 'none' ? (t.completedDates ?? []).includes(today) : t.done
   const activeToday = todayTasks.filter((t) => !isTaskDone(t))
   const doneToday = todayTasks.filter(isTaskDone)
+  // Only counts tasks that actually carry an estimate — an unestimated task
+  // contributing 0 would understate the total rather than just omitting it.
+  const remainingMinutesToday = activeToday.reduce((sum, t) => sum + (t.durationMinutes || 0), 0)
 
   const overdueTasks = tasks
     .filter((t) => isOverdue(t, today) && matchesCategory(t))
@@ -595,6 +598,7 @@ export default function Home() {
                   </div>
                   <span className="progress__label">
                     {t('doneOfTotal', doneToday.length, todayTasks.length)}
+                    {remainingMinutesToday > 0 && ` · ${t('timeLeftToday', remainingMinutesToday)}`}
                   </span>
                 </div>
               )}

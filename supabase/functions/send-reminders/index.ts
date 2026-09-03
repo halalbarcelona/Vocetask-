@@ -3,30 +3,40 @@
 // browser tab runs no JavaScript, so this is the only place that can ever
 // decide "it's time to remind someone" for a fully-closed app.
 //
-// Deploy: supabase functions deploy send-reminders
-// Secrets (set via `supabase secrets set` or the dashboard):
-//   SUPABASE_URL               - your project URL (usually already set)
-//   SUPABASE_SERVICE_ROLE_KEY  - Project Settings -> API -> service_role key
-//   VAPID_PUBLIC_KEY           - from `npx web-push generate-vapid-keys`
-//   VAPID_PRIVATE_KEY          - from the same command; never in client code
+// Deploy: supabase functions deploy send-reminders --no-verify-jwt
 //
-// This function only ever touches signed-in Sync accounts' own rows (tasks,
-// push_subscriptions) via the service_role key, which is exactly why that
-// key must never leave Supabase's secret store — see push_schema.sql's
-// Vault-based scheduling setup for how the cron job authenticates without
-// the key ever appearing in a committed file.
+// Secrets live in Supabase Vault, not as function env vars — this function
+// reads them itself via its own service_role client at request time, through
+// the public.get_vault_secret() RPC (see push_schema.sql). The vault schema
+// is not exposed over PostgREST (a deliberate Supabase security boundary,
+// same as never exposing the raw service_role key), so a direct
+// `.schema('vault')` query 500s — a SECURITY DEFINER function scoped to
+// service_role is the sanctioned way through it.
+//   vapid_public_key     - from `npx web-push generate-vapid-keys`
+//   vapid_private_key    - from the same command; never in client code
+//   cron_shared_secret   - a random string only this project's database and
+//                          this function ever see
+//
+// --no-verify-jwt is deliberate, not an oversight: this endpoint is called
+// by pg_cron/pg_net, which has no Supabase user session to hand it a JWT.
+// In its place, every request must present the same cron_shared_secret in
+// an X-Cron-Secret header (see push_schema.sql's cron.schedule call) —
+// checked below before anything else runs. Anyone who doesn't know that
+// secret gets a 401 with no further work done.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import webpush from 'npm:web-push@3.6.7'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY') ?? ''
-const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY') ?? ''
-
-webpush.setVapidDetails('mailto:support@auratask.app', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)
 
 const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+
+async function getSecret(name: string): Promise<string> {
+  const { data, error } = await supabaseAdmin.rpc('get_vault_secret', { secret_name: name })
+  if (error || !data) throw new Error(`Missing vault secret: ${name}`)
+  return data as string
+}
 
 // --- recurrence + due-date logic, ported from src/utils/recurrence.js -------
 // Kept as a plain port (not shared source) because the client bundles for
@@ -82,10 +92,32 @@ function timeToMinutes(time: string): number {
   return h * 60 + m
 }
 
-Deno.serve(async () => {
+// Quiet hours (Premium): a window during which reminders go silent instead
+// of firing. The window can wrap past midnight (e.g. 22:00–07:00), which is
+// exactly the common case, so this can't just be a plain min<=x<max compare.
+function isWithinQuietHours(minutesOfDay: number, quietStart: string | null, quietEnd: string | null): boolean {
+  if (!quietStart || !quietEnd) return false
+  const start = timeToMinutes(quietStart)
+  const end = timeToMinutes(quietEnd)
+  if (start === end) return false
+  return start < end ? minutesOfDay >= start && minutesOfDay < end : minutesOfDay >= start || minutesOfDay < end
+}
+
+Deno.serve(async (req: Request) => {
+  const expectedSecret = await getSecret('cron_shared_secret')
+  if (req.headers.get('x-cron-secret') !== expectedSecret) {
+    return new Response('Unauthorized', { status: 401 })
+  }
+
+  const [vapidPublicKey, vapidPrivateKey] = await Promise.all([
+    getSecret('vapid_public_key'),
+    getSecret('vapid_private_key'),
+  ])
+  webpush.setVapidDetails('mailto:support@auratask.app', vapidPublicKey, vapidPrivateKey)
+
   const { data: subscriptions, error: subError } = await supabaseAdmin
     .from('push_subscriptions')
-    .select('endpoint, user_id, p256dh, auth, timezone')
+    .select('endpoint, user_id, p256dh, auth, timezone, quiet_start, quiet_end')
 
   if (subError) {
     console.error('Failed to load push_subscriptions', subError)
@@ -121,6 +153,24 @@ Deno.serve(async () => {
 
     const { dateISO, minutesOfDay } = localParts(sub.timezone || 'UTC')
 
+    if (isWithinQuietHours(minutesOfDay, sub.quiet_start, sub.quiet_end)) continue
+
+    // Resolved once per subscription (not per task) — Premium unlocks
+    // action buttons ("Mark done" / "Snooze 10m") on the notification
+    // itself, decided here since the client has no say over what a push
+    // payload contains once it leaves the server.
+    let isPremium = false
+    try {
+      const { data: userResp } = await supabaseAdmin.auth.admin.getUserById(sub.user_id)
+      const email = userResp?.user?.email
+      if (email) {
+        const { data: premiumData } = await supabaseAdmin.rpc('check_premium_status', { check_email: email })
+        isPremium = Boolean(premiumData)
+      }
+    } catch (err) {
+      console.error('Premium lookup failed, defaulting to free', err)
+    }
+
     for (const task of userTasks) {
       if (!isDueOn(task, dateISO) || isAlreadyDone(task, dateISO)) continue
 
@@ -148,7 +198,7 @@ Deno.serve(async () => {
       try {
         await webpush.sendNotification(
           { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-          JSON.stringify({ title: 'Aura Task', body }),
+          JSON.stringify({ title: 'Aura Task', body, taskId: task.id, premium: isPremium }),
         )
         sent += 1
       } catch (err: any) {

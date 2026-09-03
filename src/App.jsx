@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
+import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom'
 import { TasksProvider } from './hooks/TasksContext'
 import { PremiumProvider, usePremiumContext } from './hooks/PremiumContext'
 import { AccountProvider, useAccountContext } from './hooks/AccountContext'
@@ -38,6 +38,7 @@ import Timeline from './pages/Timeline'
 import Labels from './pages/Labels'
 import Focus from './pages/Focus'
 import Sync from './pages/Sync'
+import QuickAction from './pages/QuickAction'
 
 function RequireAccount() {
   const { hasAccount } = useAccountContext()
@@ -58,10 +59,30 @@ function PremiumBackendSync() {
   return null
 }
 
+// A notification's action button posts here (see src/sw.js) when a tab is
+// already open and gets focused rather than a new one being opened — the
+// same /quick-action route the fresh-tab case navigates to, so both paths
+// share one implementation of what "Mark done" / "Snooze 10m" actually do.
+function QuickActionListener() {
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const onMessage = (event) => {
+      if (event.data?.type !== 'QUICK_ACTION' || !event.data.taskId) return
+      navigate(`/quick-action?task=${encodeURIComponent(event.data.taskId)}&action=${event.data.action}`)
+    }
+    navigator.serviceWorker?.addEventListener('message', onMessage)
+    return () => navigator.serviceWorker?.removeEventListener('message', onMessage)
+  }, [navigate])
+
+  return null
+}
+
 export default function App() {
   return (
     <>
     <UpdatePrompt />
+    <QuickActionListener />
     <UILangProvider>
     <PreferencesProvider>
     <AccountProvider>
@@ -108,6 +129,7 @@ export default function App() {
                         <Route path="/labels" element={<Labels />} />
                         <Route path="/focus" element={<Focus />} />
                         <Route path="/sync" element={<Sync />} />
+                        <Route path="/quick-action" element={<QuickAction />} />
                         </Route>
                       </Route>
                     </Routes>

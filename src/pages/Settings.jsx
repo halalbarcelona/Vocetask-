@@ -191,6 +191,70 @@ export default function Settings() {
                     {t('notificationsBlocked')}
                   </p>
                 )}
+                {notifications.push.enabled && (
+                  <div className="settings-row">
+                    <span>{t('sendTestNotification')}</span>
+                    <button
+                      type="button"
+                      className="button button--ghost button--small"
+                      onClick={async () => {
+                        const result = await notifications.push.sendTestNotification(t('testNotificationBody'))
+                        flashStatus(result.ok ? t('testNotificationSent') : result.message)
+                      }}
+                    >
+                      {t('sendTestNotification')}
+                    </button>
+                  </div>
+                )}
+                {notifications.push.enabled && isPremium && (
+                  <div className="settings-row">
+                    <span>
+                      {t('quietHours')}
+                      <span className="settings-row__note">{t('quietHoursNote')}</span>
+                    </span>
+                    <div className="theme-row">
+                      <input
+                        type="time"
+                        aria-label={t('quietHours')}
+                        value={notifications.push.quietHours.start || ''}
+                        onChange={(e) =>
+                          notifications.push.setQuietHours(e.target.value || null, notifications.push.quietHours.end)
+                        }
+                      />
+                      <span aria-hidden="true">–</span>
+                      <input
+                        type="time"
+                        aria-label={t('quietHours')}
+                        value={notifications.push.quietHours.end || ''}
+                        onChange={(e) =>
+                          notifications.push.setQuietHours(notifications.push.quietHours.start, e.target.value || null)
+                        }
+                      />
+                      {(notifications.push.quietHours.start || notifications.push.quietHours.end) && (
+                        <button
+                          type="button"
+                          className="button button--ghost button--small"
+                          onClick={() => notifications.push.setQuietHours(null, null)}
+                        >
+                          {t('quietHoursOff')}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {notifications.push.enabled && (
+                  <div className="settings-row">
+                    <span>
+                      {t('quickActionsSetting')}
+                      <span className="settings-row__note">{t('quickActionsNote')}</span>
+                    </span>
+                    {!isPremium && (
+                      <button type="button" className="button button--ghost button--small" onClick={() => navigate('/upgrade')}>
+                        {t('upgrade')}
+                      </button>
+                    )}
+                  </div>
+                )}
               </>
             )}
             <div className="settings-row">

@@ -83,12 +83,11 @@ export function usePremium() {
   const syncFromBackend = useCallback(async (email) => {
     if (!supabaseConfigured || !email) return false
     try {
-      const { data, error } = await supabase
-        .from('premium_status')
-        .select('is_premium')
-        .eq('email', email)
-        .maybeSingle()
-      if (error || !data?.is_premium) return false
+      // A scoped RPC, not a table select — premium_status has no SELECT
+      // policy at all, so a raw query here would just fail. This function
+      // only ever answers "is this one email premium?", never "list them".
+      const { data, error } = await supabase.rpc('check_premium_status', { check_email: email })
+      if (error || !data) return false
       setIsPaid(true)
       return true
     } catch {

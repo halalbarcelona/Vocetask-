@@ -27,6 +27,8 @@ export function usePushNotifications() {
   const [permissionDenied, setPermissionDenied] = useState(
     () => pushSupported && Notification.permission === 'denied',
   )
+  // { start, end } as "HH:MM" strings, or nulls when quiet hours are off.
+  const [quietHours, setQuietHoursState] = useState({ start: null, end: null })
 
   useEffect(() => {
     if (!pushSupported) {
@@ -36,8 +38,17 @@ export function usePushNotifications() {
     let cancelled = false
     navigator.serviceWorker.ready
       .then((registration) => registration.pushManager.getSubscription())
-      .then((subscription) => {
-        if (!cancelled) setEnabledState(Boolean(subscription))
+      .then(async (subscription) => {
+        if (cancelled) return
+        setEnabledState(Boolean(subscription))
+        if (subscription && supabaseConfigured) {
+          const { data } = await supabase
+            .from('push_subscriptions')
+            .select('quiet_start, quiet_end')
+            .eq('endpoint', subscription.endpoint)
+            .maybeSingle()
+          if (!cancelled && data) setQuietHoursState({ start: data.quiet_start, end: data.quiet_end })
+        }
       })
       .catch(() => {})
       .finally(() => {
@@ -101,5 +112,46 @@ export function usePushNotifications() {
     [isSignedIn, userId],
   )
 
-  return { supported: pushSupported, enabled, checking, setEnabled, permissionDenied }
+  // Shown right in the browser via the same service worker that would
+  // handle a real server push — proves permission + registration actually
+  // work without waiting on the once-a-minute cron job to fire for real.
+  const sendTestNotification = useCallback(async (body) => {
+    if (!pushSupported || Notification.permission !== 'granted') {
+      return { ok: false, message: 'Enable push notifications first.' }
+    }
+    const registration = await navigator.serviceWorker.ready
+    await registration.showNotification('Aura Task', {
+      body,
+      icon: '/Vocetask-/icons/icon-192.png',
+      badge: '/Vocetask-/icons/icon-192.png',
+    })
+    return { ok: true }
+  }, [])
+
+  // Premium: a DND window during which send-reminders suppresses reminders
+  // instead of sending them (see supabase/functions/send-reminders). Pass
+  // null/null to turn it back off.
+  const setQuietHours = useCallback(async (start, end) => {
+    const registration = await navigator.serviceWorker.ready
+    const subscription = await registration.pushManager.getSubscription()
+    if (!subscription) return { ok: false, message: 'Enable push notifications first.' }
+    const { error } = await supabase
+      .from('push_subscriptions')
+      .update({ quiet_start: start, quiet_end: end })
+      .eq('endpoint', subscription.endpoint)
+    if (error) return { ok: false, message: error.message }
+    setQuietHoursState({ start, end })
+    return { ok: true }
+  }, [])
+
+  return {
+    supported: pushSupported,
+    enabled,
+    checking,
+    setEnabled,
+    permissionDenied,
+    sendTestNotification,
+    quietHours,
+    setQuietHours,
+  }
 }

@@ -1,8 +1,8 @@
--- Run this in the Supabase SQL editor (Project → SQL Editor → New query) once,
--- to turn on real Web Push notifications — reminders that arrive even when
--- Aura Task isn't open in any tab. Until this runs (and the send-reminders
--- Edge Function is deployed — see supabase/functions/send-reminders/), the
--- app's existing in-tab reminder keeps working exactly as it does today.
+-- This is now live on the production project (ogrhsphixhgkbpdlzfks): the
+-- tables, the get_vault_secret() RPC, and the once-a-minute cron job below
+-- have all been applied and verified end-to-end (401 without the shared
+-- secret, 200 with it). Kept here as the record of what's deployed and to
+-- reproduce it on a fresh project — it is no longer a to-do list.
 --
 -- Real push needs a server to decide "it's time," since a closed browser tab
 -- runs no JavaScript at all. That's what this migration + a scheduled
@@ -49,23 +49,48 @@ create table if not exists reminder_log (
 alter table reminder_log enable row level security;
 
 -- ---------------------------------------------------------------------------
+-- Vault access: the `vault` schema is deliberately NOT exposed over
+-- PostgREST (same boundary that keeps the raw service_role key out of
+-- reach) — so the Edge Function's supabase-js client cannot query
+-- vault.decrypted_secrets directly; that call 500s. The sanctioned way
+-- through is a SECURITY DEFINER function in `public`, executable only by
+-- service_role, that reads Vault on the function's behalf.
+create or replace function public.get_vault_secret(secret_name text)
+returns text
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  secret_value text;
+begin
+  select decrypted_secret into secret_value
+  from vault.decrypted_secrets
+  where name = secret_name;
+  return secret_value;
+end;
+$$;
+
+revoke all on function public.get_vault_secret(text) from public, anon, authenticated;
+grant execute on function public.get_vault_secret(text) to service_role;
+
+-- ---------------------------------------------------------------------------
 -- Scheduling: pg_cron calls the Edge Function once a minute via pg_net.
 --
--- The Edge Function needs your service_role key both to pass Supabase's own
--- gateway JWT check and for its admin database access inside the function
--- (same key the stripe-webhook function already uses). That key must never
--- be written into a file that gets committed to this repo — store it in
--- Supabase Vault instead, which only your project's Postgres can decrypt.
+-- The function is deployed with --no-verify-jwt (verify_jwt: false) because
+-- pg_cron/pg_net has no Supabase user session to hand it a JWT. In its
+-- place, the function checks an X-Cron-Secret header against a random
+-- secret that only this project's database and this function ever see —
+-- generated once with `openssl rand -hex 32`, never the service_role key.
 --
 -- One-time setup, run in the SQL editor:
 --
 --   create extension if not exists pg_cron;
 --   create extension if not exists pg_net;
 --
---   select vault.create_secret(
---     '<paste your service_role key here — Project Settings -> API>',
---     'send_reminders_service_role_key'
---   );
+--   select vault.create_secret('<vapid public key>', 'vapid_public_key');
+--   select vault.create_secret('<vapid private key>', 'vapid_private_key');
+--   select vault.create_secret('<openssl rand -hex 32 output>', 'cron_shared_secret');
 --
 --   select cron.schedule(
 --     'send-reminders-every-minute',
@@ -75,9 +100,9 @@ alter table reminder_log enable row level security;
 --       url := 'https://ogrhsphixhgkbpdlzfks.supabase.co/functions/v1/send-reminders',
 --       headers := jsonb_build_object(
 --         'Content-Type', 'application/json',
---         'Authorization', 'Bearer ' || (
+--         'X-Cron-Secret', (
 --           select decrypted_secret from vault.decrypted_secrets
---           where name = 'send_reminders_service_role_key'
+--           where name = 'cron_shared_secret'
 --         )
 --       ),
 --       body := '{}'::jsonb
@@ -86,3 +111,6 @@ alter table reminder_log enable row level security;
 --   );
 --
 -- To stop it later: select cron.unschedule('send-reminders-every-minute');
+--
+-- Verified live: an unauthenticated request to the function returns 401;
+-- one carrying the correct X-Cron-Secret returns 200 with {"sent": N}.

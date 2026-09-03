@@ -44,6 +44,8 @@ const FEATURES = [
   { label: 'Backup & restore (.json)', free: '—', premium: 'Included' },
   { label: 'Share today’s list', free: '—', premium: 'Included' },
   { label: 'Sync across devices', free: '—', premium: 'Included' },
+  { label: 'Quiet hours for push reminders', free: '—', premium: 'Included' },
+  { label: 'Quick actions on notifications (Mark done / Snooze)', free: '—', premium: 'Included' },
   { label: 'Support', free: '—', premium: 'Priority' },
 ]
 

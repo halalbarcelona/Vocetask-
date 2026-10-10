@@ -1,0 +1,17 @@
+{
+  "name": "review-agent",
+  "version": "0.1.0",
+  "description": "An AI agent that reads your business reviews, drafts replies in your voice, and escalates the ones that need a human.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0"
+  }
+}

@@ -3,7 +3,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { SEED_REVIEWS, DEFAULT_BUSINESS } from "./seed.js";
 
-export function createStore(file = path.join(process.cwd(), "data", "db.json")) {
+export function createStore(file = process.env.DATA_FILE || path.join(process.cwd(), "data", "db.json")) {
   let db;
   try {
     db = JSON.parse(fs.readFileSync(file, "utf8"));

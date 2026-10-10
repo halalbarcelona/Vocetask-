@@ -1,6 +1,7 @@
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
+import { timingSafeEqual } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { createStore } from "./store.js";
 import { analyzeReview, decideStatus, MODEL } from "./agent.js";
@@ -35,13 +36,16 @@ export function createApp(store = createStore()) {
   return http.createServer(async (req, res) => {
     const url = new URL(req.url, "http://x");
     const p = url.pathname;
+    if (p === "/healthz") return json(res, 200, { ok: true });
+    if (!authorized(req)) {
+      res.writeHead(401, { "WWW-Authenticate": 'Basic realm="Review Agent"' });
+      return res.end("Login required");
+    }
     try {
       if (p === "/api/state" && req.method === "GET")
         return json(res, 200, { business: store.business, settings: store.settings, reviews: store.list(), live: hasKey(), model: MODEL });
 
       if (p === "/api/reviews" && req.method === "POST") {
-        const token = process.env.INGEST_TOKEN;
-        if (token && req.headers.authorization !== `Bearer ${token}`) return json(res, 401, { error: "unauthorized" });
         const b = await readBody(req);
         if (!b.text || !Number.isFinite(+b.rating)) return json(res, 400, { error: "text and rating required" });
         const rec = store.add({ platform: b.platform || "Manual", author: b.author || "Anonymous", rating: Math.min(5, Math.max(1, +b.rating)), text: String(b.text) });
@@ -87,6 +91,20 @@ export function createApp(store = createStore()) {
       json(res, 500, { error: e.message });
     }
   });
+}
+
+// If APP_PASSWORD is set, everything needs HTTP Basic auth (any username).
+// POST /api/reviews also accepts "Authorization: Bearer <INGEST_TOKEN>" for webhooks.
+function authorized(req) {
+  const pw = process.env.APP_PASSWORD;
+  if (!pw) return true;
+  const h = req.headers.authorization || "";
+  const tok = process.env.INGEST_TOKEN;
+  if (tok && h === `Bearer ${tok}` && req.method === "POST" && req.url === "/api/reviews") return true;
+  if (!h.startsWith("Basic ")) return false;
+  const given = Buffer.from(h.slice(6), "base64").toString().split(":").slice(1).join(":");
+  const a = Buffer.from(given), b = Buffer.from(pw);
+  return a.length === b.length && timingSafeEqual(a, b);
 }
 
 const hasKey = () => !!process.env.ANTHROPIC_API_KEY;

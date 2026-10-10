@@ -57,3 +57,16 @@ test("HTTP flow: ingest, approve, publish", async () => {
     assert.equal(bad.status, 400);
   } finally { server.close(); }
 });
+
+test("APP_PASSWORD gates the app; healthz stays open", async () => {
+  process.env.APP_PASSWORD = "s3cret";
+  const store = createStore(path.join(fs.mkdtempSync(path.join(os.tmpdir(), "ra-")), "db.json"));
+  const server = createApp(store).listen(0);
+  const base = `http://localhost:${server.address().port}`;
+  try {
+    assert.equal((await fetch(base + "/api/state")).status, 401);
+    assert.equal((await fetch(base + "/healthz")).status, 200);
+    const ok = "Basic " + Buffer.from("me:s3cret").toString("base64");
+    assert.equal((await fetch(base + "/api/state", { headers: { Authorization: ok } })).status, 200);
+  } finally { server.close(); delete process.env.APP_PASSWORD; }
+});

@@ -29,3 +29,9 @@ No API key? It runs in **demo mode** with rule-based replies so you can try the 
 Publishing is **simulated** by default. Google, Yelp and TripAdvisor each need their own API access/OAuth. Add an adapter in `src/platforms.js` (e.g. Google Business Profile `reviews.updateReply`) and a poller or webhook to feed `POST /api/reviews`.
 
 Review text is passed to the model as untrusted data, and a keyword safety net escalates sensitive reviews even if the model misses them.
+
+## Deploy on Render
+
+1. Render dashboard → **New → Blueprint** → pick this repo (it reads `render.yaml`).
+2. Paste your `ANTHROPIC_API_KEY` when asked. `APP_PASSWORD` is generated for you (Environment tab); log in with any username and that password.
+3. Free-tier note: the disk is ephemeral, so reviews reset on each redeploy/restart. Use a paid plan with a persistent disk (mount it and set `DATA_FILE=/your/mount/db.json`) or move storage to a database for real use.
